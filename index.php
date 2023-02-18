@@ -199,9 +199,7 @@ function get_emitter($emitter_id) {
    
 
 
-//~ echo get_emitter('16643-A');
 
-//~ exit;
  
  
  
@@ -209,11 +207,6 @@ function get_emitter($emitter_id) {
 $ver = SQLite3::version();
 
 $db = new SQLite3('/home/chockob/Documents/ledger/ledger-home.sqlite.gnucash', SQLITE3_OPEN_READONLY); //, SQLITE3_OPEN_READWRITE);
-
-//$db_portfolio = new SQLite3('/var/www/html/investment/portfolio.sqlite', SQLITE3_OPEN_READWRITE);
-
-
-
 
 
     
