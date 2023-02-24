@@ -402,15 +402,27 @@ function get_moex_bond_bondization_json ($bond_secid) {
 	
 	//$bond_secid = 'RU000A104UA4';
 	
-	$bondization_file = 'bondization/'.$bond_secid.'.json';	
-	if (file_exists($bondization_file)) {
-		$people_json = file_get_contents($bondization_file);	
+	$source_file = 'bondization/'.$bond_secid.'.json';	
+	if (file_exists($source_file)) {
+		//~ $people_json = file_get_contents($source_file);	
 		//echo "file<br>";
+
+		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+		$dateEnd = date_create(date('d.m.Y',time()));
+		$dateEnd->setTime(24,0,0);
+		$diff = date_diff($dateStart,$dateEnd);
+	
+		if ($diff->format("%a") > 100 ) {					
+			$people_json = file_get_contents('https://iss.moex.com/iss/securities/'.$bond_secid.'/bondization.json?iss.json=extended&iss.meta=on&iss.only=coupons&lang=ru&limit=unlimited');	
+			file_put_contents($source_file, $people_json);
+		}
 	}
 	else {
 		$people_json = file_get_contents('https://iss.moex.com/iss/securities/'.$bond_secid.'/bondization.json?iss.json=extended&iss.meta=on&iss.only=coupons&lang=ru&limit=unlimited');	
-		file_put_contents($bondization_file, $people_json);
+		file_put_contents($source_file, $people_json);
 	}
+	
+	$people_json = file_get_contents($source_file);	
 	$decoded_json = json_decode($people_json, true);	
 	
 	//print_r($decoded_json);
@@ -419,17 +431,9 @@ function get_moex_bond_bondization_json ($bond_secid) {
 	
 	//$i=0;
 	foreach($decoded_json[1]['coupons'][1] as $key=>$val) {
-		//echo '<hr>';
-		
-		//echo 'coupondate => '.$val['coupondate'].'<br>';
-		//echo 'recorddate => '.$val['recorddate'].'<br>';
-		//echo 'startdate => '.$val['startdate'].'<br>';
-		//echo 'value_rub => '.$val['value_rub'].'<br>';
-		//echo 'valueprc => '.$val['valueprc'].'<br>';
-	
+
 		$i = date('y.n',strtotime($val['coupondate']));
-		
-		
+				
 		$res[$i]['coupondate'] = $val['coupondate'];
 		$res[$i]['recorddate'] = $val['recorddate'];
 		$res[$i]['startdate'] = $val['startdate'];
@@ -636,10 +640,7 @@ echo '<tr>
 / Разница (&#956;-цена - Цена)">Цена <big>/ &#956; / &Delta;</big></br>
 ₽ / ₽ / ₽ - %
 </a></th>
-<!-- <th><a title="Средняя цена акции (Базис / Акции)"><big>&#956;</big>-Цена,</br>₽</a></th>
-<th><a title="Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР">Цена,</br>₽</a></th>
-<th><a title="Разница (&#956;-цена - Цена)"><big>&Delta;</big>-Цены,</br>₽/%</a></th>
--->
+
 <th><a title="Сумма полученных дивидендов"><big>&sum;</big> дивидендов,</br>₽</a></th>
 <th><a title="Возвратность инвестиционных вложений. Сумма дивидендов / Базис * 100">ROI,</br>%</a></th>
 <th><a title="Последняя покупка акций">Прошло,</br>мес/дн</a></th>
@@ -992,7 +993,7 @@ while ($row = $results->fetchArray()) {
 		
 		if ($row['res_quantity_denom'] > 0) {
 			echo '<tr>';
-			echo '<td>'.$row['name'].'</td>';
+			echo '<td><a href="https://www.moex.com/ru/issue.aspx?code='.$row['name'].'">'.$row['name'].'</a></td>';
 			
 			//$bond = '';
 			//$bond = get_moex_bond_json($row['name']);
@@ -1297,11 +1298,11 @@ echo "</html>".PHP_EOL;
 //get_moex_bond_price();
 
 
-echo "<textarea>";
-foreach ($logs as $line) 
-	echo $line.PHP_EOL;
+// echo "<textarea>";
+// foreach ($logs as $line) 
+// 	echo $line.PHP_EOL;
 
-$endtime = microtime(true); // Bottom of page
+// $endtime = microtime(true); // Bottom of page
 
-printf("Page loaded in %f seconds", $endtime - $starttime );	
-echo "</textarea>";
+// printf("Page loaded in %f seconds", $endtime - $starttime );	
+// echo "</textarea>";
