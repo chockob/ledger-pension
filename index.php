@@ -1288,7 +1288,6 @@ echo "</table>";
 
 //var_export( $avg_couponvalue );
 
-//exit;
 
 
 
