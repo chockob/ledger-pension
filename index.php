@@ -130,6 +130,7 @@ function get_emitter($emitter_id) {
 	$source_file = 'emitter/'.$emitter_id.'.json';	
 	
 	$html = '';
+	$result = 'EMPTY';
 	if (file_exists($source_file)  ) {
 		
 		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
@@ -142,13 +143,10 @@ function get_emitter($emitter_id) {
 			//~ file_put_contents($source_file, $html);
 		}
 		else
-			$result = file_get_contents($source_file);	
-		
-		
+			$result = file_get_contents($source_file);			
 	}	
 	else {				
 		$html = file_get_contents('https://www.cbr.ru/registries/rcb/ecb/?UniDbQuery.Posted=True&UniDbQuery.SPhrase='.$emitter_id.'&UniDbQuery.SearchType=4');	
-
 		//~ file_put_contents($source_file, $html);
 	}
 	
@@ -171,8 +169,7 @@ function get_emitter($emitter_id) {
 		  
 			$td = $elements[0]->getElementsByTagName('td');
 			
-			
-		   
+				   
 			//~ echo $td[2]->nodeValue;  
 			//~ echo $td[3]->nodeValue;  
 			//~ file_put_contents($source_file, $td[2]->nodeValue);  
@@ -1250,7 +1247,7 @@ while ($row = $results->fetchArray()) {
 }
 $db->close();
 
-echo '<tr><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th> <th></th><th></th>';
+echo '<tr><th></th><th>Купоны</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th> <th></th><th></th>';
 for ($i=0;$i<$bondization_period;$i++) {
 	echo '<th class="number">';
 	
@@ -1262,11 +1259,18 @@ echo '</tr>';
 
 echo "</table>";
 
+
+//~ echo print_r($bond);
+
+//~ Информация по портфелю
 echo "<table>";
 echo "<caption>Портфель</caption>";
 echo '<tr>';
 echo '<td>Базис</td><td class="number"><big>&sum;</big></td><td class="number">'.number_format($total_investment, 2, ',', ' ').'</td>';
-echo '</tr><tr>';
+
+
+
+
 echo '<td>Значение</td><td class="number"><big>&sum;</big></td><td class="number">'.number_format($total_prevlegalcloseprice, 2, ',', ' ').'</td>';
 
 
@@ -1285,6 +1289,36 @@ echo "</table>";
 
 
 
+echo "<table>";
+echo "<caption>Эмитенты портфеля</caption>";
+echo '<tr><td>Эмитент</td><td class="number"><big>&sum;</big></td></tr>';
+$togle_name = '';
+$bond_tmp = array();
+foreach ($bond as $key=>$val) {
+	
+	if (!in_array($val['REGNUMBER'], $bond_tmp)) {
+	
+		echo '<tr>';	
+		echo '<td>';
+		if ($val['REGNUMBER'] != '')
+			echo get_emitter($val['REGNUMBER']);
+		else
+			echo 'ОФЗ';
+		echo '</td>';
+		echo '<td class="number">';		
+		echo number_format($total_prevlegalcloseprice_emitter[$val['REGNUMBER']], 2, ',', '&nbsp;');
+		echo '</td>';		
+
+		echo '<td class="number">';		
+		echo number_format($total_prevlegalcloseprice_emitter[$val['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
+		echo '</td>';
+		echo '</tr>';			
+		$bond_tmp[] = $val['REGNUMBER'];		
+	}
+	
+	
+}
+echo "</table>";
 
 //var_export( $avg_couponvalue );
 
