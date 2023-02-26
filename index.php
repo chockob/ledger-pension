@@ -1304,63 +1304,7 @@ echo "</table>";
 
 
 
-//~ echo "<table>";
-//~ echo "<caption>Эмитенты портфеля</caption>";
-//~ echo '<tr><th>Эмитент</th><th><big>&sum;</big></th><th><big>&Colon;</big></th></tr>';
-//~ $togle_name = '';
-//~ $bond_tmp = array();
 
-
-//~ foreach ($bond as $key=>$val) {
-	
-	//~ if (!in_array($val['REGNUMBER'], $bond_tmp)) {
-	
-		//~ if ($total_prevlegalcloseprice_emitter[$val['REGNUMBER']] > 0) {
-			//~ echo '<tr>';	
-			//~ echo '<td>';
-			
-			//~ if ($val['REGNUMBER'] != '')
-				//~ $tmp_a['emitter_name'] = get_emitter($val['REGNUMBER']);
-			//~ else
-				//~ $tmp_a['emitter_name'] = 'ОФЗ';
-			
-			//~ echo $tmp_a['emitter_name'];
-			//~ echo '</td>';
-			//~ echo '<td class="number">';		
-			//~ $tmp_a['emitter_total'] = number_format($total_prevlegalcloseprice_emitter[$val['REGNUMBER']], 2, ',', '&nbsp;');
-			//~ echo $tmp_a['emitter_total'];
-			
-			
-			//~ echo '</td>';		
-
-		
-			//~ $tmp_a['emitter_colon'] =  number_format($total_prevlegalcloseprice_emitter[$val['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
-			
-			//~ if ( $tmp_a['emitter_colon'] >= 5)
-				//~ $css_background = 'color3';
-			//~ elseif ( $tmp_a['emitter_colon'] <= 4 && $tmp_a['emitter_colon'] >= 3)
-				//~ $css_background = 'color1';
-			//~ else
-				//~ $css_background = 'color2';
-			
-			//~ echo '<th class="number '.$css_background.'">';
-			//~ echo $tmp_a['emitter_colon'];
-			//~ echo '</td>';
-			//~ echo '</tr>';			
-			
-			
-			
-		
-			
-			
-			//~ $bond_tmp[] = $val['REGNUMBER'];	
-			
-		//~ }
-	//~ }
-	
-	
-//~ }
-//~ echo "</table>";
 
 //var_export( $avg_couponvalue );
 
