@@ -131,26 +131,27 @@ function get_emitter($emitter_id) {
 	
 	$html = '';
 	$result = 'EMPTY';
-	if (file_exists($source_file)  ) {
-		
-		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
-		$dateEnd = date_create(date('d.m.Y',time()));			
-		$dateEnd->setTime(24,0,0);
+	if (!empty($emitter_id)) {	
+		if (file_exists($source_file)  ) {
+			
+			$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+			$dateEnd = date_create(date('d.m.Y',time()));			
+			$dateEnd->setTime(24,0,0);
 
-		$diff = date_diff($dateStart,$dateEnd);
-		if ( $diff->format("%a") > 10 ) {
+			$diff = date_diff($dateStart,$dateEnd);
+			if ( $diff->format("%a") > 10 ) {
+				$html = file_get_contents('https://www.cbr.ru/registries/rcb/ecb/?UniDbQuery.Posted=True&UniDbQuery.SPhrase='.$emitter_id.'&UniDbQuery.SearchType=4');	
+				//~ file_put_contents($source_file, $html);
+			}
+			else
+				$result = file_get_contents($source_file);			
+		}	
+		else {				
 			$html = file_get_contents('https://www.cbr.ru/registries/rcb/ecb/?UniDbQuery.Posted=True&UniDbQuery.SPhrase='.$emitter_id.'&UniDbQuery.SearchType=4');	
 			//~ file_put_contents($source_file, $html);
 		}
-		else
-			$result = file_get_contents($source_file);			
-	}	
-	else {				
-		$html = file_get_contents('https://www.cbr.ru/registries/rcb/ecb/?UniDbQuery.Posted=True&UniDbQuery.SPhrase='.$emitter_id.'&UniDbQuery.SearchType=4');	
-		//~ file_put_contents($source_file, $html);
 	}
-	
-	//~ echo '==='.$html;
+	//~ echo '==='.$emitter_id.'</br>';
 	
 	if (!empty($html)) {
 		
@@ -168,20 +169,24 @@ function get_emitter($emitter_id) {
 			//~ }
 		  
 			$td = $elements[0]->getElementsByTagName('td');
+			if (!is_null($td)) {
 			
-				   
-			//~ echo $td[2]->nodeValue;  
-			//~ echo $td[3]->nodeValue;  
-			//~ file_put_contents($source_file, $td[2]->nodeValue);  
-			//~ $result = $td[2]->nodeValue;	
-			
-			$patterns = array('/Общество с ограниченной ответственностью/', "/Публичное акционерное общество/", "/Акционерное общество/", "/Государственное унитарное предприятие/", '/ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО/', '/Открытое акционерное общество/');
-			$replacements = array('ООО', "ПАО", "АО", "ГУП", "ПАО", "ОАО");
-			
-			$name = preg_replace($patterns, $replacements, $td[2]->nodeValue);
-			
-			file_put_contents($source_file, $name);  
-			$result = $name;	
+					   
+				//~ echo $td[2]->nodeValue;  
+				//~ echo $td[3]->nodeValue;  
+				//~ file_put_contents($source_file, $td[2]->nodeValue);  
+				//~ $result = $td[2]->nodeValue;	
+				
+				$patterns = array('/Общество с ограниченной ответственностью/', "/Публичное акционерное общество/", "/Акционерное общество/", "/Государственное унитарное предприятие/", '/ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО/', '/Открытое акционерное общество/');
+				$replacements = array('ООО', "ПАО", "АО", "ГУП", "ПАО", "ОАО");
+				
+				$name = preg_replace($patterns, $replacements, $td[2]->nodeValue);
+				
+				if ($td[3]->nodeValue == $emitter_id ) {
+					file_put_contents($source_file, $name);  
+					$result = $name;	
+				}
+			}
 			
 			
 		}
@@ -1018,6 +1023,16 @@ while ($row = $results->fetchArray()) {
 			echo '</td>';	
 			
 			//~ сумма по эмитенту
+			$emitter_colon = number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
+
+			if ( $emitter_colon >= 5)
+				$css_background = 'color3';
+			elseif ( $emitter_colon <= 4 && $emitter_colon >= 3)
+				$css_background = 'color1';
+			else
+				$css_background = 'color2';
+				
+							
 			echo '<td class="number">'
 			.'<span style="display:table-cell; min-width:40px;">';
 			
@@ -1026,9 +1041,9 @@ while ($row = $results->fetchArray()) {
 			: '&#12291;';
 
 			echo '</span>'
-			.'<span style="color:gray; display:table-cell; min-width:20px;">&nbsp;';
+			.'<span style="display:table-cell; min-width:25px;" class="'.$css_background.'">&nbsp;';
 			echo ($togle_name != $bond[$row['name']]['REGNUMBER']) 
-			? number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;')
+			? $emitter_colon
 			: '&#12291;';
 			echo '</span>'
 			.'</td>';
@@ -1270,7 +1285,7 @@ echo '<td>Базис</td><td class="number"><big>&sum;</big></td><td class="numb
 
 
 
-
+echo '</tr><tr>';
 echo '<td>Значение</td><td class="number"><big>&sum;</big></td><td class="number">'.number_format($total_prevlegalcloseprice, 2, ',', ' ').'</td>';
 
 
@@ -1289,36 +1304,63 @@ echo "</table>";
 
 
 
-echo "<table>";
-echo "<caption>Эмитенты портфеля</caption>";
-echo '<tr><td>Эмитент</td><td class="number"><big>&sum;</big></td></tr>';
-$togle_name = '';
-$bond_tmp = array();
-foreach ($bond as $key=>$val) {
-	
-	if (!in_array($val['REGNUMBER'], $bond_tmp)) {
-	
-		echo '<tr>';	
-		echo '<td>';
-		if ($val['REGNUMBER'] != '')
-			echo get_emitter($val['REGNUMBER']);
-		else
-			echo 'ОФЗ';
-		echo '</td>';
-		echo '<td class="number">';		
-		echo number_format($total_prevlegalcloseprice_emitter[$val['REGNUMBER']], 2, ',', '&nbsp;');
-		echo '</td>';		
+//~ echo "<table>";
+//~ echo "<caption>Эмитенты портфеля</caption>";
+//~ echo '<tr><th>Эмитент</th><th><big>&sum;</big></th><th><big>&Colon;</big></th></tr>';
+//~ $togle_name = '';
+//~ $bond_tmp = array();
 
-		echo '<td class="number">';		
-		echo number_format($total_prevlegalcloseprice_emitter[$val['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
-		echo '</td>';
-		echo '</tr>';			
-		$bond_tmp[] = $val['REGNUMBER'];		
-	}
+
+//~ foreach ($bond as $key=>$val) {
+	
+	//~ if (!in_array($val['REGNUMBER'], $bond_tmp)) {
+	
+		//~ if ($total_prevlegalcloseprice_emitter[$val['REGNUMBER']] > 0) {
+			//~ echo '<tr>';	
+			//~ echo '<td>';
+			
+			//~ if ($val['REGNUMBER'] != '')
+				//~ $tmp_a['emitter_name'] = get_emitter($val['REGNUMBER']);
+			//~ else
+				//~ $tmp_a['emitter_name'] = 'ОФЗ';
+			
+			//~ echo $tmp_a['emitter_name'];
+			//~ echo '</td>';
+			//~ echo '<td class="number">';		
+			//~ $tmp_a['emitter_total'] = number_format($total_prevlegalcloseprice_emitter[$val['REGNUMBER']], 2, ',', '&nbsp;');
+			//~ echo $tmp_a['emitter_total'];
+			
+			
+			//~ echo '</td>';		
+
+		
+			//~ $tmp_a['emitter_colon'] =  number_format($total_prevlegalcloseprice_emitter[$val['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
+			
+			//~ if ( $tmp_a['emitter_colon'] >= 5)
+				//~ $css_background = 'color3';
+			//~ elseif ( $tmp_a['emitter_colon'] <= 4 && $tmp_a['emitter_colon'] >= 3)
+				//~ $css_background = 'color1';
+			//~ else
+				//~ $css_background = 'color2';
+			
+			//~ echo '<th class="number '.$css_background.'">';
+			//~ echo $tmp_a['emitter_colon'];
+			//~ echo '</td>';
+			//~ echo '</tr>';			
+			
+			
+			
+		
+			
+			
+			//~ $bond_tmp[] = $val['REGNUMBER'];	
+			
+		//~ }
+	//~ }
 	
 	
-}
-echo "</table>";
+//~ }
+//~ echo "</table>";
 
 //var_export( $avg_couponvalue );
 
