@@ -1,8 +1,8 @@
 <?php
 
-ini_set('display_errors', 1); 
-ini_set('display_startup_errors', 1); 
-error_reporting(E_ALL & ~E_NOTICE);
+//~ ini_set('display_errors', 1); 
+//~ ini_set('display_startup_errors', 1); 
+//~ error_reporting(E_ALL & ~E_NOTICE);
 
 $logs = array();
 $time = time();
@@ -119,6 +119,62 @@ pre {
 </style>'.PHP_EOL;
 echo "</head>".PHP_EOL;
 echo "<body>".PHP_EOL;
+
+
+
+//~ ------------------------
+//~ ПОЛУЧИТЬ АКРА РЕЙТИНГ ПО ЭМИССИИ
+function get_acra_rate_emission($emitter_id) {
+	//~ $emitter_id = 'RU000A104ZC9';
+	$source_file = 'acra-ratings/'.$emitter_id.'.json';	
+	
+	$html = '';
+	$result = 'EMPTY';
+	//~ if (!empty($emitter_id)) {	
+	if (!file_exists($source_file)  ) {
+		
+		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+		$dateEnd = date_create(date('d.m.Y',time()));			
+		$dateEnd->setTime(24,0,0);
+
+		$diff = date_diff($dateStart,$dateEnd);
+		if ( $diff->format("%a") > 10 ) {
+			$post_data = '{"text":"'.$emitter_id.'","sectors":[],"activities":[],"countries":[],"forecasts":[],"on_revision":0,"rating_scale":0,"rate_from":0,"rate_to":0,"vexel_types":[],"debt_types":[],"page":1,"sort":"","count":10}';
+			$stream_options=array(
+				"ssl"=>array(
+					"verify_peer"=>false,
+					"verify_peer_name"=>false,
+				),
+			   'http'=>array(
+					'method'  => 'POST',
+					'content' => ($post_data),
+					'header'=> "Content-type: application/x-www-form-urlencoded\r\n"
+						."Referer: https://www.acra-ratings.ru/ratings/emissions/?text=$emitter_id&sectors[]=&activities[]=&countries[]=&forecasts[]=&on_revision=0&rating_scale=0&rate_from=0&rate_to=0&vexel_types[]=&debt_types[]=&page=1&sort=&count=10&\r\n"
+				)    
+			); 
+			$context  = stream_context_create($stream_options);			
+			$html = file_get_contents('https://www.acra-ratings.ru/local/ajax/get_rate_emission.php', null, $context);	
+			//~ echo '===LOAD URL '.$emitter_id.'</br>';
+
+			file_put_contents($source_file, $html);
+			//~ echo "<pre>";		
+			//~ var_dump(json_decode($html, true));		
+			//~ echo "</pre>";	
+		}		
+	}	
+		
+	$json = file_get_contents($source_file);				
+	$res = json_decode($json, true);
+		//~ echo "<h1>";		
+	$result = str_replace(' ','&nbsp;', $res['data']['items'][0]['info']['rate']['value']['title']);
+		//~ echo "</h1>";		
+		//~ echo "<pre>";		
+		//~ print_r(json_decode($json, true));		
+		//~ echo "</pre>";						
+
+	return $result;
+}
+
 
 //~ ---------------- 
 //~ Получить наименование эмитента по из кода облигации
@@ -366,8 +422,7 @@ function get_moex_shares_json($shares_secid, $update_force = false) {
 			$BOARDID = 'TQBR';		
 			$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
 			file_put_contents($source_file, $people_json);
-		}
-		
+		}		
 	}
 	else {
 		$BOARDID = 'TQBR';		
@@ -377,20 +432,27 @@ function get_moex_shares_json($shares_secid, $update_force = false) {
 		
 
 	$people_json = file_get_contents($source_file);	
+	
+	//~ echo $people_json;
 		
 	$decoded_json = json_decode($people_json, true);		
-	//print_r($decoded_json);
+	//~ print_r($decoded_json);
+	
 	$res = array();	
-	$res['NAME'] 				= $decoded_json['securities']['data'][0][9];  //<th>Полное наименование</th>	
-	$res['LOTSIZE'] 			= $decoded_json['securities']['data'][0][4];  //<th>	Количество ценных бумаг в одном стандартном лоте</th>
-	$res['DECIMALS'] 			= $decoded_json['securities']['data'][0][8];  //<th>Точность, знаков после запятой</th>
-	$res['PREVLEGALCLOSEPRICE'] 			= $decoded_json['securities']['data'][0][22];  //<th>Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР</th>
-	//$res['STATUS'] 			= $decoded_json['securities']['data'][0][12];  //<th>Статус</th>	
-	//$res['LISTLEVEL'] 			= $decoded_json['securities']['data'][0][34];  //<th>Уровень листинга</th>	
-	//$res['FACEVALUE'] 			= $decoded_json['securities']['data'][0][10];   //<th>Номинальная стоимость</th>
-	//$res['COUPONPERIOD'] 	= $decoded_json['securities']['data'][0][15];  //<th>Перио-дичность выплаты купона в год</th>
-	//$res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][36];   //<th>Ставка купона, %</th>	
-	//$res['COUPONVALUE'] 		= $decoded_json['securities']['data'][0][5];   //<th>Размер купона</th>	
+	if (!empty($decoded_json['securities']['data'])) {
+		$res['NAME'] 				= $decoded_json['securities']['data'][0][9];  //<th>Полное наименование</th>	
+		$res['LOTSIZE'] 			= $decoded_json['securities']['data'][0][4];  //<th>	Количество ценных бумаг в одном стандартном лоте</th>
+		$res['DECIMALS'] 			= $decoded_json['securities']['data'][0][8];  //<th>Точность, знаков после запятой</th>
+		$res['PREVLEGALCLOSEPRICE'] 			= $decoded_json['securities']['data'][0][22];  //<th>Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР</th>
+		//$res['STATUS'] 			= $decoded_json['securities']['data'][0][12];  //<th>Статус</th>	
+		//$res['LISTLEVEL'] 			= $decoded_json['securities']['data'][0][34];  //<th>Уровень листинга</th>	
+		//$res['FACEVALUE'] 			= $decoded_json['securities']['data'][0][10];   //<th>Номинальная стоимость</th>
+		//$res['COUPONPERIOD'] 	= $decoded_json['securities']['data'][0][15];  //<th>Перио-дичность выплаты купона в год</th>
+		//$res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][36];   //<th>Ставка купона, %</th>	
+		//$res['COUPONVALUE'] 		= $decoded_json['securities']['data'][0][5];   //<th>Размер купона</th>	
+	}
+	//~ exit;
+	
 	return $res;
 	
 	
@@ -601,9 +663,14 @@ $moex_shares = array();
 $results = $db->query($sql_q);
 while ($row = $results->fetchArray()) {
 
-	$moex_shares[$row['name']] = get_moex_shares_json($row['name']);
+
 	
-	$total_prevlegalcloseprice += $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'];				
+
+	$moex_shares[$row['name']] = get_moex_shares_json($row['name']);
+	//~ var_export($moex_shares);
+	
+	if (!empty($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE']))	
+		$total_prevlegalcloseprice += $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'];				
 }
 
 
@@ -909,7 +976,7 @@ echo "<table>";
 echo "<caption>Облигации</caption>";		
 echo '
 <tr>  			
-<th>ISIN</th>
+<th>№</th>
 <th>Полное наименование</th>			
 <th><a title="Для эмитента в портфеля">Эмитент&nbsp;/&nbsp;&Colon; </br>₽ / % </a></th>			
 <th><a title="Портфель количество облигации">Обл.</br>шт</a></th>
@@ -936,7 +1003,7 @@ echo '
 
 
 <th>Дата погашения</th>
-<th>Ст. Ур.</th>
+<th><a title="Рейтинг выпуска">АКРА</a></th>
 
 
 ';
@@ -991,11 +1058,14 @@ $avg_couponpercent = array();
 
 $sum_prevlegalcloseprice_emitter =  array_sum($total_prevlegalcloseprice_emitter);
 $togle_name = '';
+$i_bond=0;
 while ($row = $results->fetchArray()) {
 		
 		if ($row['res_quantity_denom'] > 0) {
+			$i_bond++;
 			echo '<tr>';
-			echo '<td><a href="https://www.moex.com/ru/issue.aspx?code='.$row['name'].'">'.$row['name'].'</a></td>';
+			//~ echo '<td>'.$i_bond.' <a href="https://www.moex.com/ru/issue.aspx?code='.$row['name'].'">'.$row['name'].'</a></td>';
+			echo '<td>'.$i_bond.'</td>';
 			
 			//$bond = '';
 			//$bond = get_moex_bond_json($row['name']);
@@ -1006,20 +1076,17 @@ while ($row = $results->fetchArray()) {
 			
 			
 			
-			echo '<td style="white-space: nowrap;">';
-			
-			
+			echo '<td style="white-space: nowrap;">';			
+			echo '<a href="https://www.moex.com/ru/issue.aspx?code='.$row['name'].'">';
 			if (preg_match("/RU[a-zA-Z0-9]{10}/", $row['name']) ) {
 				if ($togle_name != $bond[$row['name']]['REGNUMBER'])
-					echo''.get_emitter($bond[$row['name']]['REGNUMBER'] );
+					echo ''.get_emitter($bond[$row['name']]['REGNUMBER'] );
 				else
 					echo '&#12291;';
 			}
 			else
 				echo $bond[$row['name']]['NAME'];
-			//~ echo $bond[$row['name']]['REGNUMBER'];
-			
-			
+			echo '</a>';
 			echo '</td>';	
 			
 			//~ сумма по эмитенту
@@ -1220,7 +1287,12 @@ while ($row = $results->fetchArray()) {
 			//--------------
 			
 			
-			echo '<td class="number">'.$bond[$row['name']]['STATUS'].' '.$bond[$row['name']]['LISTLEVEL'].'</td>';			
+			echo '<td>'
+			.'<span style="display:table-cell; min-width:30px; ">'
+			.get_acra_rate_emission($row['name'])
+			.'</span>'
+			//~ .$bond[$row['name']]['STATUS'].' '.$bond[$row['name']]['LISTLEVEL']
+			.'</td>';			
 			
 			
 			
@@ -1241,14 +1313,16 @@ while ($row = $results->fetchArray()) {
 					$bond_month = $bondization[$yn]['value_rub'];
 					
 					$_css = '';
-					if (strcmp($matdate,$yn) == 0)
+					if (strcmp($matdate,$yn) == 0) {
 						$_css = 'border-right:2px solid black;';
+						$a_bond_month[$yn] += $bond[$row['name']]['FACEVALUE'];	
+					}
 					
 					
 					if (!is_null( $bond_month)) {
 						echo '<td class="number '.$css_background.'" style="'.$_css.'">';
 						if ($bond_month*$row['res_quantity_denom'] > 1) {
-							echo number_format( $bond_month*$row['res_quantity_denom'], 2, ',', ' ');
+							echo number_format( $bond_month*$row['res_quantity_denom'], 2, ',', '&nbsp;');
 						}
 						echo '</td>';
 						$a_bond_month[$yn] += $bond_month*$row['res_quantity_denom'];	
@@ -1262,13 +1336,19 @@ while ($row = $results->fetchArray()) {
 }
 $db->close();
 
-echo '<tr><th></th><th>Купоны</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th> <th></th><th></th>';
+echo '<tr><td></td><td>Купоны</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td> <td></td><td></td>';
+
 for ($i=0;$i<$bondization_period;$i++) {
-	echo '<th class="number">';
 	
-	echo ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]) ? number_format($ff, 2, ',', ' ') : '';
+	if ($css_background == 'color1') 
+		$css_background = 'color2';
+	else
+		$css_background = 'color1';
 	
-	echo '</th>';
+	
+	echo '<td class="number '.$css_background.'" style="border-top:2px solid black;">';	
+	echo ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]) ? number_format($ff, 2, ',', '&nbsp;') : '';	
+	echo '</td>';
 }
 echo '</tr>';
 
@@ -1313,6 +1393,44 @@ echo "</table>";
 
 echo "</body>".PHP_EOL;
 echo "</html>".PHP_EOL;
+
+
+		//~ if (!is_null($elements)) {
+			//~ foreach ($elements as $element) {
+
+				//~ $nodes = $element->childNodes;
+				//~ foreach ($nodes as $node) {
+				  //~ echo $node->nodeValue. "</br>";
+				//~ }
+			//~ }
+		  
+			//~ $td = $elements[0]->getElementsByTagName('td');
+			//~ if (!is_null($td)) {
+			
+					   
+				//~ echo $td[2]->nodeValue;  
+				//~ echo $td[3]->nodeValue;  
+				//~ file_put_contents($source_file, $td[2]->nodeValue);  
+				//~ $result = $td[2]->nodeValue;	
+				
+				//~ $patterns = array('/Общество с ограниченной ответственностью/', "/Публичное акционерное общество/", "/Акционерное общество/", "/Государственное унитарное предприятие/", '/ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО/', '/Открытое акционерное общество/');
+				//~ $replacements = array('ООО', "ПАО", "АО", "ГУП", "ПАО", "ОАО");
+				
+				//~ $name = preg_replace($patterns, $replacements, $td[2]->nodeValue);
+				
+				//~ if ($td[3]->nodeValue == $emitter_id ) {
+					//~ file_put_contents($source_file, $name);  
+					//~ $result = $name;	
+				//~ }
+			//~ }
+			
+			
+		//~ }
+	//~ }
+
+
+//~ ======================
+
 
 //get_moex_bond_price();
 
