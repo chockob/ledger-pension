@@ -4,6 +4,11 @@
 //~ ini_set('display_startup_errors', 1); 
 //~ error_reporting(E_ALL & ~E_NOTICE);
 
+include "core.class.php";
+
+$Core = new CoreLedgerPension();
+
+
 $logs = array();
 $time = time();
 
@@ -122,60 +127,6 @@ echo "<body>".PHP_EOL;
 
 
 
-//~ ------------------------
-//~ ПОЛУЧИТЬ АКРА РЕЙТИНГ ПО ЭМИССИИ
-function get_acra_rate_emission($emitter_id) {
-	//~ $emitter_id = 'RU000A104ZC9';
-	$source_file = 'acra-ratings/'.$emitter_id.'.json';	
-	
-	$html = '';
-	$result = 'EMPTY';
-	//~ if (!empty($emitter_id)) {	
-	if (!file_exists($source_file)  ) {
-		
-		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
-		$dateEnd = date_create(date('d.m.Y',time()));			
-		$dateEnd->setTime(24,0,0);
-
-		$diff = date_diff($dateStart,$dateEnd);
-		if ( $diff->format("%a") > 10 ) {
-			$post_data = '{"text":"'.$emitter_id.'","sectors":[],"activities":[],"countries":[],"forecasts":[],"on_revision":0,"rating_scale":0,"rate_from":0,"rate_to":0,"vexel_types":[],"debt_types":[],"page":1,"sort":"","count":10}';
-			$stream_options=array(
-				"ssl"=>array(
-					"verify_peer"=>false,
-					"verify_peer_name"=>false,
-				),
-			   'http'=>array(
-					'method'  => 'POST',
-					'content' => ($post_data),
-					'header'=> "Content-type: application/x-www-form-urlencoded\r\n"
-						."Referer: https://www.acra-ratings.ru/ratings/emissions/?text=$emitter_id&sectors[]=&activities[]=&countries[]=&forecasts[]=&on_revision=0&rating_scale=0&rate_from=0&rate_to=0&vexel_types[]=&debt_types[]=&page=1&sort=&count=10&\r\n"
-				)    
-			); 
-			$context  = stream_context_create($stream_options);			
-			$html = file_get_contents('https://www.acra-ratings.ru/local/ajax/get_rate_emission.php', null, $context);	
-			//~ echo '===LOAD URL '.$emitter_id.'</br>';
-
-			file_put_contents($source_file, $html);
-			//~ echo "<pre>";		
-			//~ var_dump(json_decode($html, true));		
-			//~ echo "</pre>";	
-		}		
-	}	
-		
-	$json = file_get_contents($source_file);				
-	$res = json_decode($json, true);
-		//~ echo "<h1>";		
-	$result = str_replace(' ','&nbsp;', $res['data']['items'][0]['info']['rate']['value']['title']);
-		//~ echo "</h1>";		
-		//~ echo "<pre>";		
-		//~ print_r(json_decode($json, true));		
-		//~ echo "</pre>";						
-
-	return $result;
-}
-
-
 //~ ---------------- 
 //~ Получить наименование эмитента по из кода облигации
 
@@ -216,14 +167,6 @@ function get_emitter($emitter_id) {
 
 		$elements = $doc->getElementsByTagName('table');
 		if (!is_null($elements)) {
-			//~ foreach ($elements as $element) {
-
-				//~ $nodes = $element->childNodes;
-				//~ foreach ($nodes as $node) {
-				  //~ echo $node->nodeValue. "</br>";
-				//~ }
-			//~ }
-		  
 			$td = $elements[0]->getElementsByTagName('td');
 			if (!is_null($td)) {
 			
@@ -233,8 +176,37 @@ function get_emitter($emitter_id) {
 				//~ file_put_contents($source_file, $td[2]->nodeValue);  
 				//~ $result = $td[2]->nodeValue;	
 				
-				$patterns = array('/Общество с ограниченной ответственностью/', "/Публичное акционерное общество/", "/Акционерное общество/", "/Государственное унитарное предприятие/", '/ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО/', '/Открытое акционерное общество/');
-				$replacements = array('ООО', "ПАО", "АО", "ГУП", "ПАО", "ОАО");
+				$patterns = array(
+					'/Группа компаний/',
+					'/ГРУППА КОМПАНИЙ/',
+					'/Холдинговая компания/',
+					'/Центральная пригородная пассажирская компания/',
+					'/Государственная транспортная лизинговая компания/',
+					'/Горно - металлургическая компания/', 
+					'/Жилищно-коммунальное хозяйство/',
+					'/Общество с ограниченной ответственностью/', 
+					"/Публичное акционерное общество/", 
+					"/Акционерное общество/", 
+					"/АКЦИОНЕРНОЕ ОБЩЕСТВО/", 
+					"/Государственное унитарное предприятие/", 
+					'/ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО/', 
+					'/Открытое акционерное общество/'
+				);
+				$replacements = array(
+					'ГК',
+					'ХК',
+					'ЦППК',
+					'ГТЛК',
+					'ГМК', 
+					'ЖКХ', 
+					'ООО', 
+					"ПАО", 
+					"АО", 
+					"АО", 
+					"ГУП", 
+					"ПАО", 
+					"ОАО"
+				);
 				
 				$name = preg_replace($patterns, $replacements, $td[2]->nodeValue);
 				
@@ -929,18 +901,57 @@ $total_prevlegalcloseprice = 0;
 $total_prevlegalcloseprice_emitter = array();
 $bond = array();
 $results = $db->query($sql_q);
+$content_option = '';
 while ($row = $results->fetchArray()) {
+	
 	$bond[$row['name']] = get_moex_bond_json($row['name']);	
-	
-	
 	$total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] += $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
-	
-	
-	
 	$total_prevlegalcloseprice += $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
+	$selected = '';
+	if ('RU000A105VU7' == $row['name'])
+		$selected = 'selected';
+	
+	$content_option .= '<option '.$selected.' value="'.$row['name'].'" >'.$row['name'].'</option>';
 }
 
-
+//~ --------------------------
+//~ Форма постановки на котроль рейтинга Эксперт РА
+echo '<h3>Контроль рейтинга от Эксперт РА</h3>
+<form action="http://127.0.0.1/investment/index.php?do=raexpert-control" method="post">
+<select name="bond-name">';
+echo $content_option;
+echo '
+</select> </br>   
+<input type="radio" name="type-control" value="bond" checked>     <label>Выпуск облигации </label></br>   	
+<input type="radio" name="type-control" value="emitter">  <label>Эмитент облигации</label></br>   
+<label>url</label>			<input name="url-control" value="https://www.raexpert.ru/database/securities/bonds/1000049874/" size="40">
+<input type="submit" value="Ок">
+</form>
+';
+//~ Обработка команды на постановку контроля
+if ($_GET['do'] == 'raexpert-control') {
+	if ($_POST['type-control'] == 'bond') {
+		$bond_name = $_POST['bond-name'];
+		$url_control = $_POST['url-control'];
+		$source_file = 'raexpert/'.$bond_name.'.csv';
+		$content_control = file_get_contents($url_control);	
+		//~ echo $content_control;
+		$doc = new DOMDocument();
+		$doc->loadHTML(mb_convert_encoding($content_control, 'HTML-ENTITIES', 'UTF-8'), LIBXML_NOERROR);
+//~ var_export($doc);
+		$elements = $doc->getElementsByTagName('table');
+		$tr = $elements[0]->getElementsByTagName('tr');
+		//~ echo $tr[0]->nodeValue.'</br>';		  
+		//~ echo $tr[1]->nodeValue.'</br>';    
+		$span = $tr[1]->getElementsByTagName('span');
+		echo $span[0]->nodeValue.'</br>';    
+		$raexport_bond_val = trim($span[0]->nodeValue);
+		$td = $tr[1]->getElementsByTagName('td');
+		echo $td[1]->nodeValue.'</br>';    
+		$raexport_bond_d = trim($td[1]->nodeValue);
+		file_put_contents($source_file, "$raexport_bond_d;$raexport_bond_val;$url_control");  
+	}
+}
 
 
 
@@ -1003,7 +1014,9 @@ echo '
 
 
 <th>Дата погашения</th>
-<th><a title="Рейтинг выпуска">АКРА</a></th>
+<th><a title="Рейтинг выпуска 
+АКРА
+/ Эксперт&nbsp;РА"></a>Рейтинг</th>
 
 
 ';
@@ -1025,21 +1038,35 @@ for ($i=0;$i<$bondization_period;$i++)	{
 	else
 		$css_background = 'color1';
 	
-	echo '<th class="'.$css_background.'">';
+	
 	//~ .date("y.n", strtotime("+$i month", $time))
 	$year = date("Y", strtotime("+$i month", $time));
 	$month = date("n", strtotime("+$i month", $time));
 	
-	if ($y_toggle != $year) {
-		echo $year;
-		$y_toggle = $year;
-	}
-	if ($m_toggle != $month) {
-		echo '</br>'.$month;
-		$m_toggle = $month;
-	}	
 	
+	$th_content = '';
+	$th_style = '';
+	if ($y_toggle != $year) {
+		
+		
+		
+		$th_content .= $year;
+		
+		
+		$y_toggle = $year;
+		
+	}
+	if ($m_toggle != $month) {		
+		$th_content .= '</br>'.$month;
+		$m_toggle = $month;
+		if ($month == 12)
+			$th_style = 'border-right:1px dotted black;';
+	}	
+	echo '<th class="'.$css_background.'" style="'.$th_style.'" >';	
+	echo $th_content;
 	echo "</th>";
+	
+	
 	
 }
 	
@@ -1051,7 +1078,9 @@ $gnucash_bondization = get_gnucash_bondization();
 
 echo "</tr>			";	
 
+//~ Сумма по месячно. купоны и пограшение номинала облигации по 
 $a_bond_month = array();
+
 $sum_gnucash_bondization = 0;
 //~ $sum_portfolio_price = 0;
 $avg_couponpercent = array();
@@ -1287,11 +1316,13 @@ while ($row = $results->fetchArray()) {
 			//--------------
 			
 			
-			echo '<td>'
+			echo '<td style="border-right:1px dotted black;">'
 			.'<span style="display:table-cell; min-width:30px; ">'
-			.get_acra_rate_emission($row['name'])
-			.'</span>'
-			//~ .$bond[$row['name']]['STATUS'].' '.$bond[$row['name']]['LISTLEVEL']
+			.$Core->get_acra_rate_emission($row['name'])
+			.'</span>'			
+			.'<span style="display:table-cell; min-width:30px; ">'
+			.$Core->get_raexpert_rate_bond($row['name'])
+			.'</span>'			
 			.'</td>';			
 			
 			
@@ -1309,13 +1340,19 @@ while ($row = $results->fetchArray()) {
 				for ($i=0;$i<$bondization_period;$i++) {
 					
 					$yn = date("y.n",strtotime("+$i month", $time) );
-					
+					$n = date("n",strtotime("+$i month", $time) );
+					if ($n == 12)
+						$_css = 'border-right:1px dotted black;';
+					else
+						$_css = '';
 					$bond_month = $bondization[$yn]['value_rub'];
 					
-					$_css = '';
+					
+					
 					if (strcmp($matdate,$yn) == 0) {
-						$_css = 'border-right:2px solid black;';
-						$a_bond_month[$yn] += $bond[$row['name']]['FACEVALUE'];	
+						$_css .= 'border-right:1px solid black;';
+						
+						$a_bond_month[$yn]['bond'] += $bond[$row['name']]['FACEVALUE'];	
 					}
 					
 					
@@ -1324,11 +1361,12 @@ while ($row = $results->fetchArray()) {
 						if ($bond_month*$row['res_quantity_denom'] > 1) {
 							echo number_format( $bond_month*$row['res_quantity_denom'], 2, ',', '&nbsp;');
 						}
+						//~ echo "</br>$n";
 						echo '</td>';
-						$a_bond_month[$yn] += $bond_month*$row['res_quantity_denom'];	
+						$a_bond_month[$yn]['coupon'] += $bond_month*$row['res_quantity_denom'];	
 					}
 					else
-						echo '<td></td>';
+						echo '<td style="'.$_css.'"></td>';
 				}
 			}
 			echo '</tr>';
@@ -1336,7 +1374,7 @@ while ($row = $results->fetchArray()) {
 }
 $db->close();
 
-echo '<tr><td></td><td>Купоны</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td> <td></td><td></td>';
+echo '<tr><td></td><td>Погашение</br>Купоны</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td> <td></td><td></td>';
 
 for ($i=0;$i<$bondization_period;$i++) {
 	
@@ -1346,13 +1384,21 @@ for ($i=0;$i<$bondization_period;$i++) {
 		$css_background = 'color1';
 	
 	
-	echo '<td class="number '.$css_background.'" style="border-top:2px solid black;">';	
-	echo ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]) ? number_format($ff, 2, ',', '&nbsp;') : '';	
+	echo '<td class="number '.$css_background.'" style="border-top:1px solid black;">';	
+	echo ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['bond']) ? number_format($ff, 2, ',', '&nbsp;') : '';	
+	echo ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['coupon']) ? '</br>'.number_format($ff, 2, ',', '&nbsp;') : '';	
+	
+	
+	
 	echo '</td>';
 }
 echo '</tr>';
 
 echo "</table>";
+
+
+
+
 
 
 //~ echo print_r($bond);
@@ -1395,38 +1441,8 @@ echo "</body>".PHP_EOL;
 echo "</html>".PHP_EOL;
 
 
-		//~ if (!is_null($elements)) {
-			//~ foreach ($elements as $element) {
-
-				//~ $nodes = $element->childNodes;
-				//~ foreach ($nodes as $node) {
-				  //~ echo $node->nodeValue. "</br>";
-				//~ }
-			//~ }
-		  
-			//~ $td = $elements[0]->getElementsByTagName('td');
-			//~ if (!is_null($td)) {
+   
 			
-					   
-				//~ echo $td[2]->nodeValue;  
-				//~ echo $td[3]->nodeValue;  
-				//~ file_put_contents($source_file, $td[2]->nodeValue);  
-				//~ $result = $td[2]->nodeValue;	
-				
-				//~ $patterns = array('/Общество с ограниченной ответственностью/', "/Публичное акционерное общество/", "/Акционерное общество/", "/Государственное унитарное предприятие/", '/ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО/', '/Открытое акционерное общество/');
-				//~ $replacements = array('ООО', "ПАО", "АО", "ГУП", "ПАО", "ОАО");
-				
-				//~ $name = preg_replace($patterns, $replacements, $td[2]->nodeValue);
-				
-				//~ if ($td[3]->nodeValue == $emitter_id ) {
-					//~ file_put_contents($source_file, $name);  
-					//~ $result = $name;	
-				//~ }
-			//~ }
-			
-			
-		//~ }
-	//~ }
 
 
 //~ ======================
