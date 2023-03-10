@@ -1,0 +1,87 @@
+textarea {
+  width: 100%;
+  height: 150px;
+  padding: 5px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+
+  
+  font-size: 12px;
+  resize: none;
+}
+
+p {
+	font: normal 10pt/12pt Ubuntu Condensed;
+}
+
+table { 
+    border-spacing: 0px;
+    border-collapse: separate;
+    border:1px solid black;
+    font: normal 8pt/10pt Ubuntu Condensed;
+    /*width: 100%;*/
+}
+table caption {
+    font: bold 8pt/10pt Ubuntu Condensed;
+    background-color : #000;
+    
+    color : #fff;
+    
+    padding: 1px 5px;
+    text-align:left;
+}
+
+table tr th {
+    font: bold 8pt/10pt Ubuntu Condensed;
+    background-color : #D3D3D3;
+    
+    /*
+    color : #fff;
+    */
+    padding: 1px 2px;
+    vertical-align:top;
+}
+
+table tr th.cool {
+	border-top: 1px solid black;
+	border-left: 1px solid black;
+	/*border-right: 1px solid black;
+	*/
+}
+
+table tr td {
+    padding: 1px 2px;
+    vertical-align:top;
+}
+
+table tr td.number {
+	text-align:right
+}
+
+table tr th.number {
+	text-align:right
+}
+
+tr:nth-child(even){
+    background-color: #f5deb3	
+}
+
+pre {
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+.color1 { 
+	background: #99ff99; color: #000;
+}
+
+.color2 { 
+	background: #ffff90; color: #000;
+}
+
+.color3 { 
+	background: #ff9999; color: #000;
+}
