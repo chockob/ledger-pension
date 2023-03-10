@@ -4,9 +4,9 @@
 //~ ini_set('display_startup_errors', 1); 
 //~ error_reporting(E_ALL & ~E_NOTICE);
 
-include "core.class.php";
-include "raexpert.class.php";
-include "acra.class.php";
+include "./core/core.class.php";
+include "./core/raexpert.class.php";
+include "./core/acra.class.php";
 
 $Core = new CoreLedgerPension();
 
