@@ -5,8 +5,14 @@
 //~ error_reporting(E_ALL & ~E_NOTICE);
 
 include "core.class.php";
+include "raexpert.class.php";
+include "acra.class.php";
 
 $Core = new CoreLedgerPension();
+
+$CoreAcra = new CoreAcra();
+$CoreExpertRA = new CoreExpertRA();
+
 
 
 $logs = array();
@@ -15,7 +21,9 @@ $time = time();
 echo "<html>".PHP_EOL;
 echo "<head>
 
-<script src=\"./jquery-3.6.0.min.js\"></script>
+<script src=\"./js/jquery-3.6.0.min.js\"></script>
+<script src=\"./js/jquery.balloon.min.js\"></script>
+
 <script>
 $(document).ready(function(){
 	console.log('id=');
@@ -24,8 +32,12 @@ $(document).ready(function(){
 		console.log('id=' + s);
 		$('#tx_' + s).toggle();
     });
+    
+       
 });
 </script>
+
+
 ";
 
 echo '
@@ -809,26 +821,12 @@ while ($row = $results->fetchArray()) {
 	$total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] += $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
 	$total_prevlegalcloseprice += $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
 	$selected = '';
-	if ('RU000A105VU7' == $row['name'])
-		$selected = 'selected';
-	
+	//~ для формы постановки на контроль рейтинга Экперт РА
 	$content_option .= '<option '.$selected.' value="'.$row['name'].'" >'.$row['name'].'</option>';
 }
+//~ форма постановки на контроль рейтинга Эксперт РА
+$get_raexpert_form_control = $CoreExpertRA->get_raexpert_form_control($content_option);
 
-//~ --------------------------
-//~ Форма постановки на котроль рейтинга Эксперт РА
-echo '<h3>Контроль рейтинга от Эксперт РА</h3>
-<form action="http://127.0.0.1/investment/index.php?do=raexpert-control" method="post">
-<select name="bond-name">';
-echo $content_option;
-echo '
-</select> </br>   
-<input type="radio" name="type-control" value="bond" checked>     <label>Выпуск облигации </label></br>   	
-<input type="radio" name="type-control" value="emitter">  <label>Эмитент облигации</label></br>   
-<label>url</label>			<input name="url-control" value="https://www.raexpert.ru/database/securities/bonds/1000049874/" size="40">
-<input type="submit" value="Ок">
-</form>
-';
 //~ Обработка команды на постановку контроля
 if ($_GET['do'] == 'raexpert-control') {
 	if ($_POST['type-control'] == 'bond') {
@@ -1219,11 +1217,24 @@ while ($row = $results->fetchArray()) {
 			
 			echo '<td style="border-right:1px dotted black;">'
 			.'<span style="display:table-cell; min-width:30px; ">'
-			.$Core->get_acra_rate_emission($row['name'])
+			.$CoreAcra->get_acra_rate_emission($row['name'])
 			.'</span>'			
-			.'<span style="display:table-cell; min-width:30px; ">'
-			.$Core->get_raexpert_rate_bond($row['name'])
-			.'</span>'			
+			.'<span style="display:table-cell; min-width:30px; ">';
+
+			
+			echo ( $raexport = $CoreExpertRA->get_raexpert_rate_bond($row['name']) )
+			? $raexport
+			:'<div class="sample4">+</div>'
+			."<script>"
+			."$(function() {"
+			."	$('.sample4').balloon({"
+			."	  html: true,"
+			."	  contents: '$get_raexpert_form_control'"
+			."	});"
+			."});"
+			."</script>";
+			
+			echo '</span>'			
 			.'</td>';			
 			
 			
