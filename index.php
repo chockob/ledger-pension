@@ -731,40 +731,69 @@ $a_lines_sum = array();
 echo "<table>";    
 echo "<caption>Облигации</caption>";		
 echo '
-<tr>  			
-<th>№</th>
-<th>Полное наименование</th>			
-<th><a title="Для эмитента в портфеля">Эмитент&nbsp;/&nbsp;&Colon; </br>₽ / % </a></th>			
-<th><a title="Портфель количество облигации">Обл.</br>шт</a></th>
 
-<th><a title="Сумма инвестированных средств в облигации, (руб / пропорция от итоговой суммы)">Базис / &Colon;</br>₽ / %</a></th>
+<tr>
+<th rowspan="2">#</th>
+<th rowspan="2">Наименование</th>
+<th colspan="4"><a title="Сумма инвестированных средств в облигации, (руб / пропорция от итоговой суммы)">Базис по выпуску</a></th>
 
-<th><a title="Рыночная стоимость акций">Значение / &Colon;</br>₽ / %</a></th>
-<th><a title="Номинальная стоимость облигации
-/ Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР 
-/ Средняя цена (Базис / Количество)
-/ Разница (&#956;-цена - Цена)">Номинал. / Цена <big>/ &#956; / &Delta;</big></br>₽ / % / % / пп</a></th>
 
-<th><a title="Сумма полученных купонов"><big>&sum;</big> куп.
-</br>₽</a></th>
-<th><a title="возвратность инвестиционных вложений.
-Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI</a></br>%</th>
-<th>НКД</th>
-
-<th><a title="Размер купона 
+<th colspan="6"><a title="Рыночная стоимость облигации">Значение выпуска</a></th>
+<th colspan="3">Результаты</th>
+<th colspan="4"><a title="Размер купона 
 / Ставка купона 
-/ Период выплаты (количество в год) купонов">Купон,
-</br>₽ / % / шт</a></th>
+/ Период выплаты (количество в год) купонов">Купоны</a></th>
+
+<th rowspan="2">Дата погашения</th>
+<th colspan="2">Рейтинг</th>';
+
+
+	$year_today = date("Y");
+	echo '<th colspan="'.(13-date("n")).'" class="color1"  >'.$year_today."</th>";
+	echo '<th colspan="12" class="color2"  >'.($year_today+1)."</th>";
+	echo '<th colspan="2" class="color3"  >'.($year_today+2)."</th>";
 
 
 
-<th>Дата погашения</th>
-<th><a title="Рейтинг выпуска 
-АКРА
-/ Эксперт&nbsp;РА"></a>Рейтинг</th>
 
 
+echo '</tr>';
+
+echo '
+<tr>
+<th>&sum; (₽)</th>   
+<th>&Colon; (%)</th>
+<th><a title="Портфель количество облигации">шт</a></th>
+<th><a title="Средняя цена (Базис / Кол.)">&#956; (%)</th>
+
+<th><a title="Значение (сумма) эмитента в портфеля">&sum; Эм.(₽)</a></th>   
+<th><a title="Значение (доля) эмитента в портфеля">&Colon; (%)</a></th>
+
+<th><a title="Значение (сумма) облигации в портфеля">&sum; Об.(₽)</a></th>   
+<th><a title="Значение (доля) облигации в портфеля">&Colon; (%)</a></th>
+
+<th><a title="Номинальная стоимость облигации">Ном. (₽)</a></th>
+<th><a title="Рыночная стоимость">Рын. (%)</a></th>
+<th><a title="Разница цен (&#956; (%) - Рын. (%))">&Delta; (пп)</a></th>
+
+
+
+
+
+<th><a title="Сумма полученных купонов"><big>&sum;</big> куп.</br>₽</a></th>
+<th><a title="возвратность инвестиционных вложений.Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI</a></br>%</th>
+
+<th><a title="Накомпленный купонный доход">НКД (₽)</a></th>
+<th><a title="Размер">₽</a></th>
+<th><a title="Ставка">%</a></th>
+<th><a title="Количество">шт</a></th>
+
+<th>АКРА</th>
+<th>Эк. РА</th>
 ';
+
+
+
 
 
 $starttime = microtime(true); // Top of page
@@ -774,35 +803,23 @@ $css_background = '';
 $y_toggle ='';
 $m_toggle ='';
 for ($i=0;$i<$bondization_period;$i++)	{
-	
-	
 	if ( $i > 11)
 		$css_background = 'color3';
 	elseif ( $i > 5)
 		$css_background = 'color2';
 	else
 		$css_background = 'color1';
-	
-	
 	//~ .date("y.n", strtotime("+$i month", $time))
 	$year = date("Y", strtotime("+$i month", $time));
 	$month = date("n", strtotime("+$i month", $time));
-	
-	
 	$th_content = '';
 	$th_style = '';
-	if ($y_toggle != $year) {
-		
-		
-		
-		$th_content .= $year;
-		
-		
-		$y_toggle = $year;
-		
-	}
+	//~ if ($y_toggle != $year) {
+		//~ $th_content .= $year;
+		//~ $y_toggle = $year;
+	//~ }
 	if ($m_toggle != $month) {		
-		$th_content .= '</br>'.$month;
+		$th_content .= ''.$month;
 		$m_toggle = $month;
 		if ($month == 12)
 			$th_style = 'border-right:1px dotted black;';
@@ -810,9 +827,6 @@ for ($i=0;$i<$bondization_period;$i++)	{
 	echo '<th class="'.$css_background.'" style="'.$th_style.'" >';	
 	echo $th_content;
 	echo "</th>";
-	
-	
-	
 }
 	
 //получить сведения о полученных сумме купонов по облигациям из gnucash
@@ -861,7 +875,27 @@ while ($row = $results->fetchArray()) {
 			else
 				echo $bond[$row['name']]['NAME'];
 			echo '</a>';
-			echo '</td>';	
+			echo '</td>';
+			
+			//Базис,₽ / ∷			
+			echo '<td class="number">'			
+			.number_format($row['res_value_num'], 2, ',', '&nbsp;')
+			.'</td>';
+
+			// Базис доля портфеля
+			echo '<td class="number">'			
+			.number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;')
+			.'</td>';
+			
+			//количество
+			echo '<td class="number">'.number_format($row['res_quantity_denom'], 0, ',', '&nbsp;').'</td>';
+			
+			//средняя μ-Цена,₽
+			$bond_avg =  ($row['res_value_num']/$row['res_quantity_denom']*100/$bond[$row['name']]['FACEVALUE']);
+			echo '<td class="number">'
+			.number_format($bond_avg, 2, ',', '&nbsp;')			
+			.'</td>';
+
 			
 			//~ сумма по эмитенту
 			$emitter_colon = number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
@@ -874,95 +908,65 @@ while ($row = $results->fetchArray()) {
 				$css_background = 'color2';
 				
 							
-			echo '<td class="number">'
-			.'<span style="display:table-cell; min-width:40px;">';
+			echo '<td class="number">';
 			
 			echo ($togle_name != $bond[$row['name']]['REGNUMBER']) 
 			? number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']], 2, ',', '&nbsp;')
 			: '&#12291;';
 
-			echo '</span>'
-			.'<span style="display:table-cell; min-width:25px;" class="'.$css_background.'">&nbsp;';
+			echo '</td>';
+			echo '<td class="number '.$css_background.'">';
 			echo ($togle_name != $bond[$row['name']]['REGNUMBER']) 
 			? $emitter_colon
 			: '&#12291;';
-			echo '</span>'
-			.'</td>';
+			echo '</td>';
 			
 			$togle_name = $bond[$row['name']]['REGNUMBER'];
 			
 			
-			//количество
-			echo '<td class="number">'.number_format($row['res_quantity_denom'], 0, ',', '&nbsp;').'</td>';
 			
-			//Базис,₽ / ∷			
-			echo '<td class="number">'
-			.'<span style="display:table-cell; min-width:40px;">'
-			.number_format($row['res_value_num'], 2, ',', '&nbsp;')
-			.'</span>';
-
-			// доля портфеля
-			echo '<span style="color:gray; display:table-cell; min-width:20px;">&nbsp;'
-			.number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;')
-			.'</span>';
-			echo '</td>';
 
 
 			//Значение (Портфель рыночная стоимость, ₽)
-			echo '<td class="number">';			
+				
 			if ($row['res_quantity_denom'] > 0) {				
-				
 				//~ $sum_portfolio_price += $bond['PREVLEGALCLOSEPRICE'] * $bond['FACEVALUE'] /100 * $row['res_quantity_denom'];
-				
-				echo '<span style="display:table-cell; min-width:40px;">&nbsp;'
+				echo '<td class="number">'
 				.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'], 2, ',', '&nbsp;')
-				.'</span>';
+				.'</td>';
 				// доля портфеля
-				echo '<span style="color:gray; display:table-cell; min-width:20px;">&nbsp;'
+				echo '<td class="number">'
 				.number_format(($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']*100/$total_prevlegalcloseprice), 2, ',', '&nbsp;')
-				.'</span>';
-				
-				
-				
+				.'</td>';
 			}
-			else
-				echo '-';
-			echo '</td>';
 
 
 			
 			
-			echo '<td class="number">'
+			
 			//~ номинальная стоимость
-			.'<span style="min-width:30px; display: table-cell;   ">'
+			echo '<td class="number">'
 			.number_format($bond[$row['name']]['FACEVALUE'], 2, ',', '&nbsp;')
-			.'</span>'
-			//Цена,₽
-			.'<span style="min-width:30px; display: table-cell;   ">'
+			.'</td>'
+			//Рыночная Цена,₽
+			.'<td class="number">'
 			.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ')
-			.'&nbsp;'
-			.'</span>';
+			.'</td>';
 			
 
-			//μ-Цена,₽
-			$bond_avg =  ($row['res_value_num']/$row['res_quantity_denom']*100/$bond[$row['name']]['FACEVALUE']);
-			
-			echo '<span style="min-width:30px; color: gray; display: table-cell; ">'.number_format($bond_avg, 2, ',', '&nbsp;')			
-			.'&nbsp;'
-			.'</span>';
 
 			//Δ-Цены,₽/п.п
 			$plus_minus = '+';
-			$bond_avg_css = '#99ff99;';
+			$css_background = 'color1';
 			if (($bond[$row['name']]['PREVLEGALCLOSEPRICE'] -$bond_avg) < 0) {
 				$plus_minus = '';
-				$bond_avg_css = '#ff9999;';						
+				$css_background = 'color3';						
 			}
-			echo '<span  style="background-color:'.$bond_avg_css.' min-width:25px; display: table-cell; " >'
+			echo '<td class="number '.$css_background.'">'
+			//~ echo '<span  style="background-color:'.$bond_avg_css.' min-width:25px; display: table-cell; " >'
 			.$plus_minus
 			.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] - $bond_avg, 2, ',', '&nbsp;')
-			.'</span>';
-			echo '</td> ';
+			.'</td> ';
 			
 			
 			
@@ -1007,19 +1011,14 @@ while ($row = $results->fetchArray()) {
 			
 			//~ размер купона
 			echo '<td class="number">'
-			.'<span style="display:table-cell; min-width:25px; ">'
 			.number_format($bond[$row['name']]['COUPONVALUE'], 2, ',', ' ')
-			.'</span>'
-			//~ .'</td>'
+			.'</td>'
 			//~ ставка купона
-			//~ echo '<td class="number">'
-			.'<span style="display:table-cell; min-width:25px;" class="'.$css_background.'">'
-			
+			.'<td class="number '.$css_background.'">'
 			.$bond[$row['name']]['COUPONPERCENT']
-			.'</span>'
-			.'<span style="color:gray; display:table-cell; min-width:10px; border:0px solid red;">'
+			.'</td>'
+			.'<td class="number">'
 			.number_format(364/$bond[$row['name']]['COUPONPERIOD'],0,'','')
-			.'</span>'
 			.'</td>';	
 
 
@@ -1053,35 +1052,27 @@ while ($row = $results->fetchArray()) {
 				$css_background = 'color3';
 			else
 				$css_background = 'color3';
-				
-				
-				
-				
 			echo '<td class="'.$css_background.'" >'.date('d.m.Y', strtotime($bond[$row['name']]['MATDATE'])).'</td>';
-			//--------------
-			
-			
-			echo '<td style="border-right:1px dotted black;">'
-			.'<span style="display:table-cell; min-width:30px; ">'
-			.$CoreAcra->get_acra_rate_emission($row['name'])
-			.'</span>'			
-			.'<span style="display:table-cell; min-width:30px; ">';
 
-			
+			// рейтинги
+			echo '<td>'
+			.$CoreAcra->get_acra_rate_emission($row['name'])
+			.'</td>';
+			echo '<td>';
 			echo ( $raexport = $CoreExpertRA->get_raexpert_rate_bond($row['name']) )
 			? $raexport
-			:'<div class="sample4">+</div>'
-			."<script>"
-			."$(function() {"
-			."	$('.sample4').balloon({"
-			."	  html: true,"
-			."	  contents: '$get_raexpert_form_control'"
-			."	});"
-			."});"
-			."</script>";
+			: '-';
+			//~ '<div class="sample4">+</div>'
+			//~ ."<script>"
+			//~ ."$(function() {"
+			//~ ."	$('.sample4').balloon({"
+			//~ ."	  html: true,"
+			//~ ."	  contents: '$get_raexpert_form_control'"
+			//~ ."	});"
+			//~ ."});"
+			//~ ."</script>";			
 			
-			echo '</span>'			
-			.'</td>';			
+			echo '</td>';
 			
 			
 			
@@ -1132,7 +1123,10 @@ while ($row = $results->fetchArray()) {
 }
 $db->close();
 
-echo '<tr><td></td><td>Погашение</br>Купоны</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td> <td></td><td></td>';
+echo '<tr><td></td><td>Погашение</br>Купоны</td><td></td><td></td>
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+<td></td><td></td>
+<td></td><td></td><td></td><td></td><td></td><td></td> <td></td><td></td>';
 
 for ($i=0;$i<$bondization_period;$i++) {
 	
