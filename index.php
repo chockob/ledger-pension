@@ -20,29 +20,36 @@ $CoreMOEX = new CoreMOEX();
 $logs = array();
 $time = time();
 
-echo "<html>".PHP_EOL;
-echo "<head>
+echo "<!doctype html>".PHP_EOL;
+echo '<html data-theme="dark">'.PHP_EOL;
+echo '<head>
 
-<link rel=\"stylesheet\" href=\"./style.css\">
+ <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/pico.css">
+';
 
-<script src=\"./js/jquery-3.6.0.min.js\"></script>
-<script src=\"./js/jquery.balloon.min.js\"></script>
+//~ echo "
+//~ <link rel=\"stylesheet\" href=\"./style.css\">
 
-<script>
-$(document).ready(function(){
-	console.log('id=');
-    $('.btn_tx').click(function() {
-		var s = $(this).attr('id');
-		console.log('id=' + s);
-		$('#tx_' + s).toggle();
-    });
+//~ <script src=\"./js/jquery-3.6.0.min.js\"></script>
+//~ <script src=\"./js/jquery.balloon.min.js\"></script>
+
+//~ <script>
+//~ $(document).ready(function(){
+	//~ console.log('id=');
+    //~ $('.btn_tx').click(function() {
+		//~ var s = $(this).attr('id');
+		//~ console.log('id=' + s);
+		//~ $('#tx_' + s).toggle();
+    //~ });
     
        
-});
-</script>
+//~ });
+//~ </script>
 
 
-";
+//~ ";
 
 
 echo "</head>".PHP_EOL;
@@ -426,28 +433,41 @@ ORDER BY res_value_num DESC';
 
 
 
+echo "<h1>Акции</h1>";
+echo "<table>";
+echo "<thead>";    
+echo '
+<tr>
+<th rowspan="2">#</th>
+<th rowspan="2">Наименование</th>
+<th colspan="5">Базис</th>
+<th colspan="4">Значение</th>
+<th colspan="4">Результат</th>
+</tr> 
 
-echo "<table>";    
-echo "<caption>Акции</caption>";
-echo '<tr>  			
-<th>ISIN</th>
-<th>Полное наименование</th>			
-<th>Акций,</br>шт</th>
-<th><a title="Сумма инвестированных средств в акции, (руб / пропорция от итоговой суммы)">Базис / &Colon;</br>₽ / %</a></th>
-<th><a title="Рыночная стоимость акций">Значение / &Colon; </br>₽ / %</a></th>
-<th><a title="Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР 
-/ Средняя цена (Базис / Количество)
-/ Разница (&#956;-цена - Цена)">Цена <big>/ &#956; / &Delta;</big></br>
-₽ / ₽ / ₽ - %
-</a></th>
+<tr>  			
+<th><a title="Сумма инвестированных средств в акции, (руб / пропорция от итоговой суммы)">&sum;&nbsp;(₽)</a></th>
+<th><a title="Сумма инвестированных средств в акции, (руб / пропорция от итоговой суммы)">&Colon;&nbsp;(%)</a></th>
+<th>шт</th>
+<th><a title="Средняя цена (Базис / Количество)">&#956;&nbsp;(₽)</a></th>
+<th><a title="Последняя покупка акций">Сут.</a></th>
 
-<th><a title="Сумма полученных дивидендов"><big>&sum;</big> дивидендов,</br>₽</a></th>
-<th><a title="Возвратность инвестиционных вложений. Сумма дивидендов / Базис * 100">ROI,</br>%</a></th>
-<th><a title="Последняя покупка акций">Прошло,</br>мес/дн</a></th>
-<th><a title="Количество ценных бумаг в одном лоте и его стоимость">Цена лота,</br>₽/шт</a></th>
 
-</tr>
-';
+<th><a title="Сумма Рыночная стоимость акций">&sum;&nbsp;(₽)</a></th>
+<th><a title="Доля Рыночная стоимость акций">&Colon;&nbsp;(%)</a></th>
+<th><a title="Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР ">Рын.&nbsp;(₽)</a></th>
+<th><a title="Количество ценных бумаг в одном лоте и его стоимость">Лот&nbsp;(₽)</a></th>
+
+
+<th><a title="Разница (&#956;-цена - Цена)">&Delta;&nbsp;(₽)</a></th>
+<th><a title="Разница (&#956;-цена - Цена)">&Delta;&nbsp;(пп)</a></th>
+
+
+<th><a title="Сумма полученных дивидендов">&sum;&nbsp;Див.&nbsp;(₽)</a></th>
+<th><a title="Возвратность инвестиционных вложений. Сумма дивидендов / Базис * 100">ROI&nbsp;(%)</a></th>
+</tr>';
+echo "</thead>";    
+echo "<tbody>";
 
 $gnucash_dividendization = get_gnucash_dividendization();
 
@@ -466,49 +486,90 @@ while ($row = $results->fetchArray()) {
 	
 			//echo '<td class="number">'.number_format($row['res_quantity_denom'], 0, ',', ' ').'</td>';
 
-			// количество
-			echo '<td class="number">';			
-			echo ($row['res_quantity_denom'] > 0) ? number_format($row['res_quantity_denom'], 0, ',', '&nbsp;') : '-';
-			echo '</td>';
 			
-			// базис (инвестировано)
-			echo '<td class="number">';			
+			// базис (инвестировано)			
 			if ($row['res_quantity_denom'] > 0) {				
 				$total_gnucash_dividendization += $gnucash_dividendization[$row['name']];
-				echo number_format($row['res_value_num'], 2, ',', '&nbsp;');				
+				echo '<td class="number">';
+				echo number_format($row['res_value_num'], 2, ',', '&nbsp;');
+				echo '</td>';
 				// доля портфеля
-				echo ($row['res_quantity_denom'] > 0) ? '&nbsp;<span style="color:gray; display:inline-block; width:20px;">/&nbsp;'.number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;').'</span>' : '';				
+				echo '<td class="number">';
+				echo ($row['res_quantity_denom'] > 0) ? number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;') : '';				
+				echo '</td>';
 			}
 			else
-				echo '-';
+				echo '<td class="number"></td><td class="number"></td>';
+
+			// количество
+			echo '<td class="number">';			
+			if ($row['res_quantity_denom'] > 0) {
+				if ($row['res_quantity_denom'] <1000)
+					echo number_format($row['res_quantity_denom'], 0, ',', '&nbsp;');
+				else
+					echo number_format($row['res_quantity_denom']/1000, 0, ',', '&nbsp;').'k';
+			}
+			echo '</td>';
+
+			//Портфель μ-цена акции, ₽				
+			echo '<td class="number">';
+			if ($row['res_quantity_denom'] > 0) {
+				$shares_avg = $row['res_value_num'] / $row['res_quantity_denom'];
+				
+				echo number_format($shares_avg  , $moex_shares[$row['name']]['DECIMALS'], ',', ' ');
+				
+			}
 			echo '</td>';
 			
+			//последний день покупки
+			echo '<td class="number">';		
+			if ($row['res_quantity_denom'] > 0) {
+				$daybuy = get_gnucash_last_daybuy_shares($row['name']);
+				if (!empty($daybuy)) {
+					$dateStart = date_create($daybuy);
+					$dateEnd = date_create(date('d.m.Y',$time));
+					$dateEnd->setTime(24,0,0);
+					$diff = date_diff($dateStart,$dateEnd);
+					echo $diff->format("%a");
+					//~ echo $diff->format("%m/%d");
+				}
+			}			
+			echo '</td>';			
+			
 			//Значение (Портфель рыночная стоимость, ₽)
-			echo '<td class="number">';			
 			if ($row['res_quantity_denom'] > 0) {							
+				echo '<td class="number">';
 				echo number_format( $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'] , 2, ',', '&nbsp;');
+				echo '</td>';
 				// доля портфеля
-				echo ($row['res_quantity_denom'] > 0) ? '&nbsp;<span style="color:gray; display:inline-block; width:20px;">/&nbsp;'.number_format(($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$total_prevlegalcloseprice), 2, ',', '&nbsp;').'</span>' : '';			
+				echo '<td class="number">';		
+				echo ($row['res_quantity_denom'] > 0) ? number_format(($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$total_prevlegalcloseprice), 2, ',', '&nbsp;') : '';
+				echo '</td>';
 			}
 			else
-				echo '-';
-			echo '</td>';
+				echo '<td class="number"></td><td class="number"></td>';
+			
 				
-			if ($row['res_quantity_denom'] > 0) {
+			
 				
 				//цена пред.дня			
-				echo '<td class="number">'					
-				.'<div style="min-width:42px; display: table-cell;">'
+				echo '<td class="number">'
 				.number_format($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], $moex_shares[$row['name']]['DECIMALS'], ',', ' ')
-				.'</div>';
+				.'</td>';
 				
-				//Портфель μ-цена акции, ₽
-				//echo '<td class="number" >';	
-				$shares_avg = $row['res_value_num'] / $row['res_quantity_denom'];
-				echo '<div style="min-width:42px; color: gray; display: table-cell;">'
-				.number_format($shares_avg  , $moex_shares[$row['name']]['DECIMALS'], ',', ' ')
-				.'</div>';
-				
+				//стоимость лота	
+				echo '<td class="number">'
+				.number_format($moex_shares[$row['name']]['LOTSIZE'] * $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ')
+				.'</td>';
+				//~ //лотность	
+				//~ echo '<td class="number">';			
+				//~ if ($moex_shares[$row['name']]['LOTSIZE'] > 1000)
+					//~ echo number_format($moex_shares[$row['name']]['LOTSIZE']/1000, 0, ',', '&nbsp;').'k';
+				//~ else
+					//~ echo number_format($moex_shares[$row['name']]['LOTSIZE'], 0, ',', '&nbsp;');
+				//~ echo '</td>';
+
+			if ($row['res_quantity_denom'] > 0) {
 				
 				$avg_pm = '+';
 				$bond_avg_css = '#99ff99';
@@ -516,24 +577,17 @@ while ($row = $results->fetchArray()) {
 					$bond_avg_css = '#ff9999';
 					$avg_pm = '';
 				}
-				//echo '</td>';
-				//цена пред.дня			
-				//echo '<td class="number">';						
-				//echo number_format($moex_shares['PREVLEGALCLOSEPRICE'], $moex_shares['DECIMALS'], ',', ' ');
-				//echo '</td>';			
 				
-				//style="width:30px; color: gray; display: inline-block;
-				
-				// Портфель Δ-цена акции, %	
-				echo '<div style="background-color:'.$bond_avg_css.'; display: table-cell; min-width:42px;" >'
+				// Портфель Δ-цена акции, ₽		
+				echo '<td class="number">'
 				.$avg_pm.number_format($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] - $shares_avg, $moex_shares[$row['name']]['DECIMALS'], ',', '&nbsp;')
-				.'</div><div style="background-color:'.$bond_avg_css.'; display:table-cell; min-width:30px;">&nbsp;'
+				.'</td>'
+				// Портфель Δ-цена акции, %	
+				.'<td class="number">'
 				.$avg_pm.number_format(($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] - $shares_avg ) *100 / $shares_avg, 1, ',', ' ')
-				.'</div>'
 				.'</td>';
 			}
 			else {				
-				echo '<td>-</td>';
 				echo '<td>-</td>';
 				echo '<td>-</td>';
 			}									
@@ -544,67 +598,51 @@ while ($row = $results->fetchArray()) {
 			
 			// ROI
 			echo '<td class="number">';
-			if (!empty($gnucash_dividendization[$row['name']]) & !empty($row['res_value_num'])) {
-				echo number_format($gnucash_dividendization[$row['name']] /  $row['res_value_num'] *100, 2, ',', ' ');
-			}
-			else
-				echo '-';
-			echo '</td>';
-			
-			
-			//последний день покупки
-			echo '<td class="number">';		
-			
 			if ($row['res_quantity_denom'] > 0) {
-			
-				$daybuy = get_gnucash_last_daybuy_shares($row['name']);
-				
-				if (!empty($daybuy)) {
-				
-					$dateStart = date_create($daybuy);
-					$dateEnd = date_create(date('d.m.Y',$time));
-				
-					$dateEnd->setTime(24,0,0);
-
-					$diff = date_diff($dateStart,$dateEnd);
-					//echo $diff->format("%a");
-					echo $diff->format("%m/%d");
+				if (!empty($gnucash_dividendization[$row['name']]) & !empty($row['res_value_num'])) {
+					echo number_format($gnucash_dividendization[$row['name']] /  $row['res_value_num'] *100, 2, ',', ' ');
 				}
-					
-			}			
+			}
 			echo '</td>';
+			
+			
+
 	
-			echo '<td class="number">';						
-			//стоимость лота	
-			echo number_format($moex_shares[$row['name']]['LOTSIZE'] * $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ');
-			//лотность	
-			echo '&nbsp;<span style="color:gray; display:inline-block; width:5px;">/&nbsp;'.number_format($moex_shares[$row['name']]['LOTSIZE'], 0, ',', '&nbsp;').'</span>';
-			echo '</td>';					
+			
+			//~ //стоимость лота	
+			//~ echo '<td class="number">'
+			//~ .number_format($moex_shares[$row['name']]['LOTSIZE'] * $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ')
+			//~ .'</td>';
+			//~ //лотность	
+			//~ echo '<td class="number">'
+			//~ .number_format($moex_shares[$row['name']]['LOTSIZE'], 0, ',', '&nbsp;').'</span>'
+			//~ .'</td>';
 	
 	
 	echo '</tr>';	
 }
+echo "</tbody>";
 echo "</table>";  
 
 echo "<table>";  
 echo "<caption>Результаты</caption>";
 //echo "<tr>";
-//echo '<th></th><th><big>&sum;</big></th>';
+//echo '<th></th><th>&sum;</th>';
 //echo "</tr>";
 echo "<tr>";
-echo '<td>Базис</td><td class="number"><big>&sum;</big></td><td class="number">'.number_format($total_investment, 2, ',', ' ').'</td>';
+echo '<td>Базис</td><td class="number">&sum;</td><td class="number">'.number_format($total_investment, 2, ',', ' ').'</td>';
 echo "</tr>";
 
 echo "<tr>";
-echo '<td>Значение</td><td class="number"><big>&sum;</big></td><td class="number"> '.number_format($total_prevlegalcloseprice, 2, ',', ' ').'</td>';
+echo '<td>Значение</td><td class="number">&sum;</td><td class="number"> '.number_format($total_prevlegalcloseprice, 2, ',', ' ').'</td>';
 echo "</tr>";
 echo "<tr>";
-echo '<td></td><td class="number"><big>&Delta;</big></td><td class="number"> '.number_format($total_prevlegalcloseprice-$total_investment, 2, ',', ' ').'</td>';
+echo '<td></td><td class="number">&Delta;</td><td class="number"> '.number_format($total_prevlegalcloseprice-$total_investment, 2, ',', ' ').'</td>';
 echo "</tr>";
 echo "<tr>";
 //echo '<th></th><th></th><th></th>';
 //echo '<th></th>';
-echo '<td>Дивиденды</td><td class="number"> <big>&sum;</big> </td><td class="number"> '.number_format($total_gnucash_dividendization, 2, ',', ' ').'</td>';
+echo '<td>Дивиденды</td><td class="number"> &sum; </td><td class="number"> '.number_format($total_gnucash_dividendization, 2, ',', ' ').'</td>';
 echo "</tr>";
 echo "<tr>";
 echo '<td>ROI</td><td class="number">%</td><td class="number">'.number_format($total_gnucash_dividendization / $total_investment * 100, 2, ',', ' ').'</td>';
@@ -728,8 +766,12 @@ $sql_rr= '';
 $invest_summ = 0;
 $a_lines = array();
 $a_lines_sum = array();
-echo "<table>";    
-echo "<caption>Облигации</caption>";		
+
+echo "<h1>Облигации</h1>";		
+echo '<figure>';
+
+echo '<table>';    
+echo "<thead>";    
 echo '
 
 <tr>
@@ -761,35 +803,35 @@ echo '</tr>';
 
 echo '
 <tr>
-<th>&sum; (₽)</th>   
-<th>&Colon; (%)</th>
+<th>&sum;&nbsp;(₽)</th>   
+<th>&Colon;&nbsp;(%)</th>
 <th><a title="Портфель количество облигации">шт</a></th>
-<th><a title="Средняя цена (Базис / Кол.)">&#956; (%)</th>
+<th><a title="Средняя цена (Базис / Кол.)">&#956;&nbsp;(%)</th>
 
-<th><a title="Значение (сумма) эмитента в портфеля">&sum; Эм.(₽)</a></th>   
-<th><a title="Значение (доля) эмитента в портфеля">&Colon; (%)</a></th>
+<th><a title="Значение (сумма) эмитента в портфеля">&sum;&nbsp;Эм.&nbsp;(₽)</a></th>   
+<th><a title="Значение (доля) эмитента в портфеля">&Colon;&nbsp;(%)</a></th>
 
-<th><a title="Значение (сумма) облигации в портфеля">&sum; Об.(₽)</a></th>   
-<th><a title="Значение (доля) облигации в портфеля">&Colon; (%)</a></th>
+<th><a title="Значение (сумма) облигации в портфеля">&sum;&nbsp;Об.&nbsp;(₽)</a></th>   
+<th><a title="Значение (доля) облигации в портфеля">&Colon;&nbsp;(%)</a></th>
 
-<th><a title="Номинальная стоимость облигации">Ном. (₽)</a></th>
-<th><a title="Рыночная стоимость">Рын. (%)</a></th>
-<th><a title="Разница цен (&#956; (%) - Рын. (%))">&Delta; (пп)</a></th>
-
-
+<th><a title="Номинальная стоимость облигации">Ном.&nbsp;(₽)</a></th>
+<th><a title="Рыночная стоимость">Рын.&nbsp;(%)</a></th>
+<th><a title="Разница цен (&#956; (%) - Рын. (%))">&Delta;&nbsp;(пп)</a></th>
 
 
 
-<th><a title="Сумма полученных купонов"><big>&sum;</big> куп.</br>₽</a></th>
-<th><a title="возвратность инвестиционных вложений.Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI</a></br>%</th>
 
-<th><a title="Накомпленный купонный доход">НКД (₽)</a></th>
+
+<th><a title="Сумма полученных купонов">&sum;&nbsp;Куп.&nbsp;(₽)</a></th>
+<th><a title="возвратность инвестиционных вложений.Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI&nbsp;(%)</a></th>
+
+<th><a title="Накомпленный купонный доход">НКД&nbsp;(₽)</a></th>
 <th><a title="Размер">₽</a></th>
 <th><a title="Ставка">%</a></th>
 <th><a title="Количество">шт</a></th>
 
-<th>АКРА</th>
-<th>Эк. РА</th>
+<th>&nbsp;&nbsp;АКРА&nbsp;&nbsp;</th>
+<th>Экперт&nbsp;РА</th>
 ';
 
 
@@ -835,7 +877,9 @@ $gnucash_bondization = get_gnucash_bondization();
 	
 
 
-echo "</tr>			";	
+echo "</tr>";	
+echo "</thead>";
+echo "<tbody>";
 
 //~ Сумма по месячно. купоны и пограшение номинала облигации по 
 $a_bond_month = array();
@@ -1074,10 +1118,7 @@ while ($row = $results->fetchArray()) {
 			
 			echo '</td>';
 			
-			
-			
-			
-			
+			//~ календарь выплаты купонов
 			for ($i=0;  $i < $row['res_quantity_denom']; $i++)
 				$avg_couponpercent[] = $bond[$row['name']]['COUPONPERCENT'];
 	
@@ -1085,28 +1126,20 @@ while ($row = $results->fetchArray()) {
 
 			if (is_array($bondization)) {		
 				$matdate = date('y.n', strtotime($bond[$row['name']]['MATDATE']));
-				
+				$css_fin = '';
 				for ($i=0;$i<$bondization_period;$i++) {
 					
 					$yn = date("y.n",strtotime("+$i month", $time) );
 					$n = date("n",strtotime("+$i month", $time) );
-					if ($n == 12)
-						$_css = 'border-right:1px dotted black;';
-					else
-						$_css = '';
 					$bond_month = $bondization[$yn]['value_rub'];
 					
-					
-					
 					if (strcmp($matdate,$yn) == 0) {
-						$_css .= 'border-right:1px solid black;';
-						
+						$css_fin = 'text-align:center;';
 						$a_bond_month[$yn]['bond'] += $bond[$row['name']]['FACEVALUE'];	
 					}
 					
-					
 					if (!is_null( $bond_month)) {
-						echo '<td class="number '.$css_background.'" style="'.$_css.'">';
+						echo '<td class="number '.$css_background.'" >';
 						if ($bond_month*$row['res_quantity_denom'] > 1) {
 							echo number_format( $bond_month*$row['res_quantity_denom'], 2, ',', '&nbsp;');
 						}
@@ -1114,8 +1147,14 @@ while ($row = $results->fetchArray()) {
 						echo '</td>';
 						$a_bond_month[$yn]['coupon'] += $bond_month*$row['res_quantity_denom'];	
 					}
-					else
-						echo '<td style="'.$_css.'"></td>';
+					else {
+						
+						echo '<td style="'.$css_fin.'">';
+						if (!empty($css_fin))
+							echo '&bull;';
+							
+						echo '</td>';
+					}
 				}
 			}
 			echo '</tr>';
@@ -1123,30 +1162,37 @@ while ($row = $results->fetchArray()) {
 }
 $db->close();
 
-echo '<tr><td></td><td>Погашение</br>Купоны</td><td></td><td></td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-<td></td><td></td>
-<td></td><td></td><td></td><td></td><td></td><td></td> <td></td><td></td>';
+
+
+//~ echo "<tfoot>";
+
+
+echo '<tr><td colspan="22" style="text-align:right;">Погашение</br>Купоны</td>';
 
 for ($i=0;$i<$bondization_period;$i++) {
-	
 	if ($css_background == 'color1') 
 		$css_background = 'color2';
 	else
 		$css_background = 'color1';
-	
-	
 	echo '<td class="number '.$css_background.'" style="border-top:1px solid black;">';	
 	echo ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['bond']) ? number_format($ff, 2, ',', '&nbsp;') : '';	
 	echo ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['coupon']) ? '</br>'.number_format($ff, 2, ',', '&nbsp;') : '';	
-	
-	
-	
 	echo '</td>';
 }
 echo '</tr>';
 
+
+echo '<tr><td colspan="2" style="text-align:right;">Базис &sum; (₽)</td><td class="number">'.number_format($total_investment, 2, ',', '&nbsp;').'</td><td colspan="19" ></td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">Значение &sum; (₽)</td><td colspan="6"></td><td class="number">'.number_format($total_prevlegalcloseprice, 2, ',', '&nbsp;').'</td><td colspan="13" ></td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">Результаты &Delta; (₽)</td><td colspan="10"></td><td class="number">'.number_format($total_prevlegalcloseprice-$total_investment, 2, ',', '&nbsp;').'</td><td colspan="9" ></td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">Купоны &sum; (₽)</td><td colspan="11"></td><td class="number">'.number_format($sum_gnucash_bondization, 2, ',', '&nbsp;').'</td><td colspan="8" ></td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">ROI (%)</td><td colspan="12"></td><td class="number">'.number_format($sum_gnucash_bondization / $total_investment * 100, 2, ',', '&nbsp;').'</td><td colspan="7" ></td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">Ставка купона &#956; (%)</td><td colspan="15"></td><td class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', '&nbsp;').'</td><td colspan="4" ></td></tr>';
+
+echo "</tbody>";
+//~ echo "</tfoot>";
 echo "</table>";
+echo '</figure>';
 
 
 
@@ -1154,33 +1200,6 @@ echo "</table>";
 
 
 //~ echo print_r($bond);
-
-//~ Информация по портфелю
-echo "<table>";
-echo "<caption>Портфель</caption>";
-echo '<tr>';
-echo '<td>Базис</td><td class="number"><big>&sum;</big></td><td class="number">'.number_format($total_investment, 2, ',', ' ').'</td>';
-
-
-
-echo '</tr><tr>';
-echo '<td>Значение</td><td class="number"><big>&sum;</big></td><td class="number">'.number_format($total_prevlegalcloseprice, 2, ',', ' ').'</td>';
-
-
-
-echo '</tr><tr>';
-echo '<td></td><td class="number"><big>&Delta;</big></td><td class="number"> '.number_format($total_prevlegalcloseprice-$total_investment, 2, ',', ' ').'</td>';
-
-echo '</tr><tr>';
-echo '<td>Купоны</td><td class="number"><big>&sum;</big> </td><td class="number">'.number_format($sum_gnucash_bondization, 2, ',', ' ').'</td>';
-echo '</tr><tr>';
-echo '<td>ROI</td><td class="number">%</td><td class="number">'.number_format($sum_gnucash_bondization / $total_investment * 100, 2, ',', ' ').'</td>';
-echo '</tr><tr>';
-echo '<td>Ставка купона</td><td class="number"><big>&#956;</big> </td><td class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', ' ').'%</td>';
-echo '</tr>';
-echo "</table>";
-
-
 
 
 
