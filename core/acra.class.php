@@ -45,11 +45,21 @@ class CoreAcra {
 				//~ echo "</pre>";	
 			}		
 		}	
+		
+
+
 			
 		$json = file_get_contents($source_file);				
 		$res = json_decode($json, true);
 			//~ echo "<h1>";		
 		$result = str_replace(array(' ','+'),array('&nbsp;','&#43;'), $res['data']['items'][0]['info']['rate']['value']['title']);
+		
+		
+		
+		$raiting = strtoupper( $res['data']['items'][0]['info']['rate']['value']['title'] );
+		
+		$result = $raiting;
+		
 			//~ echo "</h1>";		
 			//~ echo "<pre>";		
 			//~ print_r(json_decode($json, true));		

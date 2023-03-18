@@ -1,106 +1,44 @@
-* {
-	font-size: 10px;
-	font-family: sans-serif;
-	font-style: normal;
-
+.scroll-table-body {
+	height: 300px;
+	overflow-x: auto;
+	margin-top: 0px;
+	margin-bottom: 20px;
+	border-bottom: 1px solid #eee;
 }
-
-/*
-textarea {
-  width: 100%;
-  height: 150px;
-  padding: 5px;
-  box-sizing: border-box;
-  border: 2px solid #ccc;
-
-  
-  font-size: 12px;
-  resize: none;
+.scroll-table table {
+	width:100%;
+	table-layout: fixed;
+	border: none;
 }
-*/
-
-
-
-table { 
-/*
-    border-spacing: 0px;
-*/
-/*
-    border-collapse: separate;
-*/
-/*
-    border:1px solid black;
-*/
-    
-    width: 100%;
+.scroll-table thead th {
+	font-weight: bold;
+	text-align: left;
+	border: none;
+	padding: 10px 15px;
+	background: #d8d8d8;
+	font-size: 14px;
+	border-left: 1px solid #ddd;
+	border-right: 1px solid #ddd;
 }
-table caption {
-    
-    background-color : #000;
-    
-    color : #fff;
-    
-    padding: 1px 5px;
-    text-align:left;
+.scroll-table tbody td {
+	text-align: left;
+	border-left: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	padding: 10px 15px;
+	font-size: 14px;
+	vertical-align: top;
 }
-
-table tr th {
-    
-    background-color : #D3D3D3;
-    
-    /*
-    color : #fff;
-    */
-    border: 1px solid #DEE2E5;
-    padding: 1px 2px;
-    vertical-align:middle;
+.scroll-table tbody tr:nth-child(even){
+	background: #f3f3f3;
 }
-
-table tr th.cool {
-	border-top: 1px solid black;
-	border-left: 1px solid black;
-	/*border-right: 1px solid black;
-	*/
-}
-
-table tr td {
-	margin: 0px;
-    padding: 1px 2px;
-    vertical-align:top;
-    border: 1px solid #ccc!important;
-}
-
-table tr td.number {
-	text-align:right
-}
-
-table tr th.number {
-	text-align:right
-}
-
-/*
-tr:nth-child(even){
-    background-color: #f5deb3	
-}
-*/
-
-
-pre {
-    white-space: pre-wrap;       /* Since CSS 2.1 */
-    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-    white-space: -pre-wrap;      /* Opera 4-6 */
-    white-space: -o-pre-wrap;    /* Opera 7 */
-    word-wrap: break-word;       /* Internet Explorer 5.5+ */
-}
-
-.color1 { 
-	background: #99ff99; color: #000;
-}
-
-.color2 { 
-	background: #ffff90; color: #000;
-}
-
-.color3 { 
-	background: #ff9999; color: #000;
+ 
+/* Стили для скролла */
+::-webkit-scrollbar {
+	width: 6px;
+} 
+::-webkit-scrollbar-track {
+	box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+} 
+::-webkit-scrollbar-thumb {
+	box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
 }

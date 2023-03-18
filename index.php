@@ -27,13 +27,15 @@ echo '<head>
  <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/pico.css">
+	<script src="./js/jquery-3.6.0.min.js"></script>
+	<script src="./js/jquery.balloon.min.js"></script>    
+	<script src="./js/table.js"></script>
+    
 ';
 
 //~ echo "
 //~ <link rel=\"stylesheet\" href=\"./style.css\">
 
-//~ <script src=\"./js/jquery-3.6.0.min.js\"></script>
-//~ <script src=\"./js/jquery.balloon.min.js\"></script>
 
 //~ <script>
 //~ $(document).ready(function(){
@@ -777,14 +779,14 @@ echo '
 <tr>
 <th rowspan="2">#</th>
 <th rowspan="2">Наименование</th>
-<th colspan="4"><a title="Сумма инвестированных средств в облигации, (руб / пропорция от итоговой суммы)">Базис по выпуску</a></th>
+<th colspan="4" title="Базис. Сумма инвестированных средств в облигации, (руб / пропорция от итоговой суммы)" >Базис</th>
 
 
-<th colspan="6"><a title="Рыночная стоимость облигации">Значение выпуска</a></th>
+<th colspan="6" title="Рыночная стоимость облигации">Значение</th>
 <th colspan="3">Результаты</th>
-<th colspan="4"><a title="Размер купона 
+<th colspan="4" title="Размер купона 
 / Ставка купона 
-/ Период выплаты (количество в год) купонов">Купоны</a></th>
+/ Период выплаты (количество в год) купонов">Купоны</th>
 
 <th rowspan="2">Дата погашения</th>
 <th colspan="2">Рейтинг</th>';
@@ -803,40 +805,40 @@ echo '</tr>';
 
 echo '
 <tr>
-<th>&sum;&nbsp;(₽)</th>   
-<th>&Colon;&nbsp;(%)</th>
-<th><a title="Портфель количество облигации">шт</a></th>
-<th><a title="Средняя цена (Базис / Кол.)">&#956;&nbsp;(%)</th>
+<th class="btn_tx1" value="&sum;&nbsp;(₽)" content="b1" >&sum;&nbsp;(₽)</th>   
+<th class="btn_tx1" value="&Colon;&nbsp;(₽)" content="b2" >&Colon;&nbsp;(%)</th>
+<th class="btn_tx1" value="шт" content="b3" title="Портфель количество облигации">шт</th>
+<th class="btn_tx1" value="&#956;&nbsp;(%)" content="b4" title="Средняя цена (Базис / Кол.)">&#956;&nbsp;(%)</th>
 
-<th><a title="Значение (сумма) эмитента в портфеля">&sum;&nbsp;Эм.&nbsp;(₽)</a></th>   
-<th><a title="Значение (доля) эмитента в портфеля">&Colon;&nbsp;(%)</a></th>
+<th class="btn_tx1" value="&sum;&nbsp;Эм.&nbsp;(₽)" content="z1" title="Значение (сумма) эмитента в портфеля">&sum;&nbsp;Эм.&nbsp;(₽)</th>   
+<th class="btn_tx1" value="&Colon;&nbsp;(%)" content="z2"  title="Значение (доля) эмитента в портфеля">&Colon;&nbsp;(%)</th>
+<th class="btn_tx1" value="&sum;&nbsp;Об.&nbsp;(₽)" content="z3" title="Значение (сумма) облигации в портфеля">&sum;&nbsp;Об.&nbsp;(₽)</th>   
+<th class="btn_tx1" value="&Colon;&nbsp;(%)" content="z4" title="Значение (доля) облигации в портфеля">&Colon;&nbsp;(%)</th>
+<th class="btn_tx1" value="Ном.&nbsp;(₽)" content="z5"  title="Номинальная стоимость облигации">Ном.&nbsp;(₽)</th>
+<th class="btn_tx1" value="Рын.&nbsp;(%)" content="z6"  title="Рыночная стоимость">Рын.&nbsp;(%)</th>
 
-<th><a title="Значение (сумма) облигации в портфеля">&sum;&nbsp;Об.&nbsp;(₽)</a></th>   
-<th><a title="Значение (доля) облигации в портфеля">&Colon;&nbsp;(%)</a></th>
-
-<th><a title="Номинальная стоимость облигации">Ном.&nbsp;(₽)</a></th>
-<th><a title="Рыночная стоимость">Рын.&nbsp;(%)</a></th>
-<th><a title="Разница цен (&#956; (%) - Рын. (%))">&Delta;&nbsp;(пп)</a></th>
-
-
-
-
-
-<th><a title="Сумма полученных купонов">&sum;&nbsp;Куп.&nbsp;(₽)</a></th>
-<th><a title="возвратность инвестиционных вложений.Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI&nbsp;(%)</a></th>
+<th class="btn_tx1" value="&Delta;&nbsp;(пп)" content="r1" title="Разница цен (&#956; (%) - Рын. (%))">&Delta;&nbsp;(пп)</th>
+<th class="btn_tx1" value="&sum;&nbsp;Куп.&nbsp;(₽)" content="r2" title="Сумма полученных купонов">&sum;&nbsp;Куп.&nbsp;(₽)</th>
+<th class="btn_tx1" value="ROI&nbsp;(%)" content="r3" title="возвратность инвестиционных вложений.Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI&nbsp;(%)</th>
 
 <th><a title="Накомпленный купонный доход">НКД&nbsp;(₽)</a></th>
 <th><a title="Размер">₽</a></th>
 <th><a title="Ставка">%</a></th>
 <th><a title="Количество">шт</a></th>
 
-<th>&nbsp;&nbsp;АКРА&nbsp;&nbsp;</th>
-<th>Экперт&nbsp;РА</th>
-';
+<th title="AAA(RU)
+
+AA+(RU)
+AA(RU)
+AA-(RU)
+
+A+(RU)
+A(RU)
+A-(RU)
+">&nbsp;&nbsp;АКРА&nbsp;&nbsp;</th>
 
 
-
-
+<th>Экперт&nbsp;РА</th>';
 
 $starttime = microtime(true); // Top of page
 
@@ -922,47 +924,61 @@ while ($row = $results->fetchArray()) {
 			echo '</td>';
 			
 			//Базис,₽ / ∷			
-			echo '<td class="number">'			
+			echo '<td class="number" >'
+			.'<span class="b1">'
 			.number_format($row['res_value_num'], 2, ',', '&nbsp;')
+			.'</span>'
 			.'</td>';
 
 			// Базис доля портфеля
-			echo '<td class="number">'			
+			echo '<td class="number" >'			
+			.'<span class="b2">'
 			.number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;')
+			.'</span>'
 			.'</td>';
 			
 			//количество
-			echo '<td class="number">'.number_format($row['res_quantity_denom'], 0, ',', '&nbsp;').'</td>';
+			echo '<td class="number">'
+			.'<span class="b3">'
+			.number_format($row['res_quantity_denom'], 0, ',', '&nbsp;')
+			.'</span>'
+			.'</td>';
 			
 			//средняя μ-Цена,₽
 			$bond_avg =  ($row['res_value_num']/$row['res_quantity_denom']*100/$bond[$row['name']]['FACEVALUE']);
 			echo '<td class="number">'
+			.'<span class="b4">'
 			.number_format($bond_avg, 2, ',', '&nbsp;')			
+			.'</span>'
 			.'</td>';
 
 			
 			//~ сумма по эмитенту
 			$emitter_colon = number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
 
-			if ( $emitter_colon >= 5)
-				$css_background = 'color3';
-			elseif ( $emitter_colon <= 4 && $emitter_colon >= 3)
-				$css_background = 'color1';
-			else
-				$css_background = 'color2';
-				
-							
-			echo '<td class="number">';
+			echo '<td class="number">'
+			.'<span class="z1">';
 			
 			echo ($togle_name != $bond[$row['name']]['REGNUMBER']) 
 			? number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']], 2, ',', '&nbsp;')
 			: '&#12291;';
-
+			echo '</span>';
 			echo '</td>';
-			echo '<td class="number '.$css_background.'">';
+			
+			//~ доля (суммы) по эмитенту
+			if ( $emitter_colon >= 10)
+				$css_background = 'color3';
+			elseif ($emitter_colon >= 5)
+				$css_background = 'color1';
+			else
+				$css_background = 'color2';
+			
+			echo '<td class="number '.$css_background.'">'
+			.'<span class="z2">';
 			echo ($togle_name != $bond[$row['name']]['REGNUMBER']) 
 			? $emitter_colon
 			: '&#12291;';
+			echo '</span>';
 			echo '</td>';
 			
 			$togle_name = $bond[$row['name']]['REGNUMBER'];
@@ -976,11 +992,25 @@ while ($row = $results->fetchArray()) {
 			if ($row['res_quantity_denom'] > 0) {				
 				//~ $sum_portfolio_price += $bond['PREVLEGALCLOSEPRICE'] * $bond['FACEVALUE'] /100 * $row['res_quantity_denom'];
 				echo '<td class="number">'
+				.'<span class="z3">'
 				.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'], 2, ',', '&nbsp;')
+				.'</span>'
 				.'</td>';
+				
+								
 				// доля портфеля
-				echo '<td class="number">'
-				.number_format(($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']*100/$total_prevlegalcloseprice), 2, ',', '&nbsp;')
+				$portfolio_bond_colone = ($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
+				if ( $portfolio_bond_colone >= 5)
+					$css_background = 'color3';
+				elseif ( $portfolio_bond_colone <= 4 && $portfolio_bond_colone >= 3)
+					$css_background = 'color1';
+				else
+					$css_background = 'color2';				
+
+				echo '<td class="number '.$css_background.'">'
+				.'<span class="z4">'
+				.number_format($portfolio_bond_colone, 2, ',', '&nbsp;')
+				.'</span>'
 				.'</td>';
 			}
 
@@ -990,11 +1020,15 @@ while ($row = $results->fetchArray()) {
 			
 			//~ номинальная стоимость
 			echo '<td class="number">'
+			.'<span class="z5">'
 			.number_format($bond[$row['name']]['FACEVALUE'], 2, ',', '&nbsp;')
+			.'</span>'
 			.'</td>'
 			//Рыночная Цена,₽
 			.'<td class="number">'
+			.'<span class="z6">'
 			.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ')
+			.'</span>'
 			.'</td>';
 			
 
@@ -1007,16 +1041,25 @@ while ($row = $results->fetchArray()) {
 				$css_background = 'color3';						
 			}
 			echo '<td class="number '.$css_background.'">'
+			.'<span class="r1">'
 			//~ echo '<span  style="background-color:'.$bond_avg_css.' min-width:25px; display: table-cell; " >'
 			.$plus_minus
 			.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] - $bond_avg, 2, ',', '&nbsp;')
+			.'</span> '
 			.'</td> ';
 			
 			
 			
 			//∑ купонов,₽
 			$result_bondization = '';
-			echo ($result_bondization = $gnucash_bondization[$row['name']]) ? '<td class="number">'.number_format($result_bondization, 2, ',', ' ').'</td>' : '<td class="number"></td>';
+			echo ($result_bondization = $gnucash_bondization[$row['name']]) 
+			? 
+			'<td class="number">'
+			.'<span class="r2">'
+			.number_format($result_bondization, 2, ',', ' ')
+			.'</span>' 
+			.'</td>' 
+			: '<td class="number"></td>';
 			$sum_gnucash_bondization += $result_bondization;
 		
 			//if (($bond['PREVLEGALCLOSEPRICE'] -$bond_avg) < 0)
@@ -1026,19 +1069,25 @@ while ($row = $results->fetchArray()) {
 			//echo '</td> ';
 			
 			// ROI
-			echo '<td class="number">';
+			echo '<td class="number">'
+			.'<span class="r3">';
 			if (!empty($result_bondization)) {
 				echo number_format(
 				($result_bondization / ($row['res_value_num']* ($bond[$row['name']]['PREVLEGALCLOSEPRICE']/100) )  *100 ) , 2, ',', ' '
 				);
 			}
+			echo '</span>';
 			echo '</td>';
 			
 			
 			//echo '<td class="number">'.number_format($bond['PREVLEGALCLOSEPRICE'], 2, ',', ' ').'</td>';
 	
 
-			echo '<td class="number">'.number_format($bond[$row['name']]['ACCRUEDINT'],2,',',' ').'</td>';		
+			echo '<td class="number">'
+			.'<span class="">'
+			.number_format($bond[$row['name']]['ACCRUEDINT'],2,',',' ')
+			.'</span>'
+			.'</td>';		
 			
 			$css_background = '';
 			if ($bond[$row['name']]['COUPONPERCENT'] >=11 )
@@ -1099,8 +1148,28 @@ while ($row = $results->fetchArray()) {
 			echo '<td class="'.$css_background.'" >'.date('d.m.Y', strtotime($bond[$row['name']]['MATDATE'])).'</td>';
 
 			// рейтинги
-			echo '<td>'
-			.$CoreAcra->get_acra_rate_emission($row['name'])
+			
+			$aaa_acra 	= array('AAA(RU)');
+			$aa_acra 	= array('AA+(RU)','AA(RU)','AA-(RU)');
+			$a_acra 	= array('A+(RU)','A(RU)','A-(RU)');
+			
+			$acra = $CoreAcra->get_acra_rate_emission($row['name']);
+			
+			$css_background = '';			
+			if (!empty($acra)) {
+				if (in_array($acra,$aaa_acra))
+					$css_background = 'color1';
+				elseif (in_array($acra,$aa_acra))
+					$css_background = 'color1';
+				elseif (in_array($acra,$a_acra))
+					$css_background = 'color2';
+				else
+					$css_background = 'color3';
+			}
+			
+			
+			echo '<td class="'.$css_background.'">'
+			.$acra
 			.'</td>';
 			echo '<td>';
 			echo ( $raexport = $CoreExpertRA->get_raexpert_rate_bond($row['name']) )
@@ -1180,19 +1249,19 @@ for ($i=0;$i<$bondization_period;$i++) {
 	echo '</td>';
 }
 echo '</tr>';
-
-
-echo '<tr><td colspan="2" style="text-align:right;">Базис &sum; (₽)</td><td class="number">'.number_format($total_investment, 2, ',', '&nbsp;').'</td><td colspan="19" ></td></tr>';
-echo '<tr><td colspan="2" style="text-align:right;">Значение &sum; (₽)</td><td colspan="6"></td><td class="number">'.number_format($total_prevlegalcloseprice, 2, ',', '&nbsp;').'</td><td colspan="13" ></td></tr>';
-echo '<tr><td colspan="2" style="text-align:right;">Результаты &Delta; (₽)</td><td colspan="10"></td><td class="number">'.number_format($total_prevlegalcloseprice-$total_investment, 2, ',', '&nbsp;').'</td><td colspan="9" ></td></tr>';
-echo '<tr><td colspan="2" style="text-align:right;">Купоны &sum; (₽)</td><td colspan="11"></td><td class="number">'.number_format($sum_gnucash_bondization, 2, ',', '&nbsp;').'</td><td colspan="8" ></td></tr>';
-echo '<tr><td colspan="2" style="text-align:right;">ROI (%)</td><td colspan="12"></td><td class="number">'.number_format($sum_gnucash_bondization / $total_investment * 100, 2, ',', '&nbsp;').'</td><td colspan="7" ></td></tr>';
-echo '<tr><td colspan="2" style="text-align:right;">Ставка купона &#956; (%)</td><td colspan="15"></td><td class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', '&nbsp;').'</td><td colspan="4" ></td></tr>';
-
 echo "</tbody>";
 //~ echo "</tfoot>";
 echo "</table>";
 echo '</figure>';
+
+echo '<table style="width:15%;">';
+echo '<tr><td colspan="2" style="text-align:right;">Базис &sum; (₽)</td><td class="number">'.number_format($total_investment, 2, ',', '&nbsp;').'</td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">Значение &sum; (₽)</td><td class="number">'.number_format($total_prevlegalcloseprice, 2, ',', '&nbsp;').'</td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">Результаты &Delta; (₽)</td><td class="number">'.number_format($total_prevlegalcloseprice-$total_investment, 2, ',', '&nbsp;').'</td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">Купоны &sum; (₽)</td><td class="number">'.number_format($sum_gnucash_bondization, 2, ',', '&nbsp;').'</td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">ROI (%)</td><td class="number">'.number_format($sum_gnucash_bondization / $total_investment * 100, 2, ',', '&nbsp;').'</td></tr>';
+echo '<tr><td colspan="2" style="text-align:right;">Ставка купона &#956; (%)</td><td class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', '&nbsp;').'</td></tr>';
+echo "</table>";
 
 
 
