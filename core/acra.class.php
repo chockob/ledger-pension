@@ -3,10 +3,9 @@
 
 class CoreAcra {
 
-
+	//~ ПОЛУЧИТЬ МАССИВ ШКАЛЫ 
 	public function getAcraScala(string $level): array
     {
-		
 		if ($level == 'AAA')
 			return array('AAA(RU)');
 		elseif ($level == 'AA')
@@ -15,7 +14,6 @@ class CoreAcra {
 			return array('A+(RU)','A(RU)','A-(RU)');
 		else
 			array('AAA(RU)','AA+(RU)','AA(RU)','AA-(RU)','A+(RU)','A(RU)','A-(RU)');
-			
     }
 
 	//~ ------------------------

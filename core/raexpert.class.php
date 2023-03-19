@@ -4,13 +4,30 @@
 class CoreExpertRA {
 
 
-	public $aaa_expertra 	= array('ruAAA');
-	public $aa_expertra 	= array('ruAA+','ruAA','ruAA-');
-	public $a_expertra 	= array('ruA+','ruA','ruA-');
-	public $bbb_expertra 	= array('ruBBB+','ruBBB','ruBBB-');
-	public $bb_expertra 	= array('ruBB+','ruBB','ruBB-');
-	public $b_expertra 	= array('ruB+','ruB','ruB-');
 	
+	//~ ПОЛУЧИТЬ МАССИВ ШКАЛЫ 
+	public function getExpertScala(string $level): array
+    {
+		if ($level == 'AAA')
+			return array('ruAAA');
+		elseif ($level == 'AA')
+			return array('ruAA+','ruAA','ruAA-');
+		elseif ($level == 'A')
+			return array('ruA+','ruA','ruA-');
+
+		elseif ($level == 'BBB')
+			return array('ruBBB+','ruBBB','ruBBB-');
+		elseif ($level == 'BB')
+			return array('ruBB+','ruBB','ruBB-');
+		elseif ($level == 'B')
+			return array('ruB+','ruB','ruB-');			
+		else
+			return array('ruAAA','ruAA+','ruAA','ruAA-','ruA+','ruA','ruA-','ruBBB+','ruBBB','ruBBB-','ruBB+','ruBB','ruBB-','ruB+','ruB','ruB-');
+	
+	
+    }
+    
+    	
 	//~ Рейтинг Эксперт РА по выпуску облигации
 	public function get_raexpert_rate_bond($bond) {
 		$result = '';
