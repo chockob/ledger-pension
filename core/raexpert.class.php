@@ -37,7 +37,8 @@ class CoreExpertRA {
 			//~ echo $source_file;
 			$a_csv = str_getcsv( file_get_contents($source_file),';' );	
 			//~ print_r($result);
-			$result = '<span title="'.$a_csv[0].'" >'.$a_csv[1].'</span>';
+			//~ $result = '<span title="'.$a_csv[0].'" >'.$a_csv[1].'</span>';
+			$result = $a_csv[1];
 		}
 		else
 			$result = $this->get_raexpert_form_control($bond);

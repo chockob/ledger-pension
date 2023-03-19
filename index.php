@@ -1165,7 +1165,23 @@ while ($row = $results->fetchArray()) {
 			
 			//~ Рейтинг Эксперт РА
 			$raexport = $CoreExpertRA->get_raexpert_rate_bond($row['name']);
-			echo '<td>'
+			$css_background = '';			
+			if (!empty($raexport)) {
+				if (in_array($raexport,$CoreExpertRA->getExpertScala('AAA')))
+					$css_background = 'color1';
+				elseif (in_array($raexport,$CoreExpertRA->getExpertScala('AA')))
+					$css_background = 'color1';
+				elseif (in_array($raexport,$CoreExpertRA->getExpertScala('A')))
+					$css_background = 'color1';				
+				elseif (in_array($raexport,$CoreExpertRA->getExpertScala('BBB')))
+					$css_background = 'color2';				
+				elseif (in_array($raexport,$CoreExpertRA->getExpertScala('BB')))
+					$css_background = 'color3';				
+				elseif (in_array($raexport,$CoreExpertRA->getExpertScala('B')))
+					$css_background = 'color3';				
+			}
+			
+			echo '<td class="'.$css_background.'">'
 			.$raexport
 			.'</td>';
 			
