@@ -437,7 +437,7 @@ ORDER BY res_value_num DESC';
 
 
 echo "<h1>Акции</h1>";
-echo "<table>";
+echo '<table style="width:70%;">';
 echo "<thead>";    
 echo '
 <tr>
@@ -574,20 +574,29 @@ while ($row = $results->fetchArray()) {
 
 			if ($row['res_quantity_denom'] > 0) {
 				
-				$avg_pm = '+';
-				$bond_avg_css = '#99ff99';
-				if (($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] - $shares_avg) < 0) {
-					$bond_avg_css = '#ff9999';
-					$avg_pm = '';
+				
+				$shares_profit = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] - $shares_avg);
+				$shares_profit_pp = $shares_profit *100 / $shares_avg;
+				$avg_pm = '';
+				$css_background = 'color3';
+				if ( $shares_profit_pp > -10 && $shares_profit_pp < 0 ) {
+					$css_background = 'color2';
 				}
+				elseif ( $shares_profit_pp >= 0  ) {
+					$css_background = 'color1';
+				}				
+				//~ elseif (  ) {
+					//~ $avg_pm = '+';
+					
+				//~ }
 				
 				// Портфель Δ-цена акции, ₽		
-				echo '<td class="number">'
-				.$avg_pm.number_format($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] - $shares_avg, $moex_shares[$row['name']]['DECIMALS'], ',', '&nbsp;')
+				echo '<td class="number '.$css_background.'">'
+				.$avg_pm.number_format($shares_profit, $moex_shares[$row['name']]['DECIMALS'], ',', '&nbsp;')
 				.'</td>'
 				// Портфель Δ-цена акции, %	
-				.'<td class="number">'
-				.$avg_pm.number_format(($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] - $shares_avg ) *100 / $shares_avg, 1, ',', ' ')
+				.'<td class="number '.$css_background.'">'
+				.$avg_pm.number_format($shares_profit_pp, 1, ',', ' ')
 				.'</td>';
 			}
 			else {				
@@ -627,7 +636,7 @@ while ($row = $results->fetchArray()) {
 echo "</tbody>";
 echo "</table>";  
 
-echo "<table>";  
+echo '<table style="width:15%;">';  
 echo "<caption>Результаты</caption>";
 //echo "<tr>";
 //echo '<th></th><th>&sum;</th>';
