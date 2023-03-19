@@ -4,6 +4,19 @@
 class CoreAcra {
 
 
+	public function getAcraScala(string $level): array
+    {
+		
+		if ($level == 'AAA')
+			return array('AAA(RU)');
+		elseif ($level == 'AA')
+			return array('AA+(RU)','AA(RU)','AA-(RU)');
+		elseif ($level == 'A')
+			return array('A+(RU)','A(RU)','A-(RU)');
+		else
+			array('AAA(RU)','AA+(RU)','AA(RU)','AA-(RU)','A+(RU)','A(RU)','A-(RU)');
+			
+    }
 
 	//~ ------------------------
 	//~ ПОЛУЧИТЬ АКРА РЕЙТИНГ ПО ЭМИССИИ

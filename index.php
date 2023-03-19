@@ -700,18 +700,12 @@ $total_prevlegalcloseprice = 0;
 $total_prevlegalcloseprice_emitter = array();
 $bond = array();
 $results = $db->query($sql_q);
-$content_option = '';
 while ($row = $results->fetchArray()) {
 	
 	$bond[$row['name']] = $CoreMOEX->get_moex_bond_json($row['name']);	
 	$total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] += $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
 	$total_prevlegalcloseprice += $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
-	$selected = '';
-	//~ для формы постановки на контроль рейтинга Экперт РА
-	$content_option .= '<option '.$selected.' value="'.$row['name'].'" >'.$row['name'].'</option>';
 }
-//~ форма постановки на контроль рейтинга Эксперт РА
-$get_raexpert_form_control = $CoreExpertRA->get_raexpert_form_control($content_option);
 
 //~ Обработка команды на постановку контроля
 if ($_GET['do'] == 'raexpert-control') {
@@ -1145,23 +1139,20 @@ while ($row = $results->fetchArray()) {
 				$css_background = 'color3';
 			else
 				$css_background = 'color3';
+			$css_background_cupon = $css_background;
 			echo '<td class="'.$css_background.'" >'.date('d.m.Y', strtotime($bond[$row['name']]['MATDATE'])).'</td>';
 
-			// рейтинги
-			
-			$aaa_acra 	= array('AAA(RU)');
-			$aa_acra 	= array('AA+(RU)','AA(RU)','AA-(RU)');
-			$a_acra 	= array('A+(RU)','A(RU)','A-(RU)');
+			//~ рейтинг АКРА
 			
 			$acra = $CoreAcra->get_acra_rate_emission($row['name']);
 			
 			$css_background = '';			
 			if (!empty($acra)) {
-				if (in_array($acra,$aaa_acra))
+				if (in_array($acra,$CoreAcra->getAcraScala('AAA')))
 					$css_background = 'color1';
-				elseif (in_array($acra,$aa_acra))
+				elseif (in_array($acra,$CoreAcra->getAcraScala('AA')))
 					$css_background = 'color1';
-				elseif (in_array($acra,$a_acra))
+				elseif (in_array($acra,$CoreAcra->getAcraScala('A')))
 					$css_background = 'color2';
 				else
 					$css_background = 'color3';
@@ -1171,21 +1162,12 @@ while ($row = $results->fetchArray()) {
 			echo '<td class="'.$css_background.'">'
 			.$acra
 			.'</td>';
-			echo '<td>';
-			echo ( $raexport = $CoreExpertRA->get_raexpert_rate_bond($row['name']) )
-			? $raexport
-			: '-';
-			//~ '<div class="sample4">+</div>'
-			//~ ."<script>"
-			//~ ."$(function() {"
-			//~ ."	$('.sample4').balloon({"
-			//~ ."	  html: true,"
-			//~ ."	  contents: '$get_raexpert_form_control'"
-			//~ ."	});"
-			//~ ."});"
-			//~ ."</script>";			
 			
-			echo '</td>';
+			//~ Рейтинг Эксперт РА
+			$raexport = $CoreExpertRA->get_raexpert_rate_bond($row['name']);
+			echo '<td>'
+			.$raexport
+			.'</td>';
 			
 			//~ календарь выплаты купонов
 			for ($i=0;  $i < $row['res_quantity_denom']; $i++)
@@ -1208,7 +1190,7 @@ while ($row = $results->fetchArray()) {
 					}
 					
 					if (!is_null( $bond_month)) {
-						echo '<td class="number '.$css_background.'" >';
+						echo '<td class="number '.$css_background_cupon.'" >';
 						if ($bond_month*$row['res_quantity_denom'] > 1) {
 							echo number_format( $bond_month*$row['res_quantity_denom'], 2, ',', '&nbsp;');
 						}
