@@ -77,24 +77,103 @@ class CoreExpertRA {
 			//~ </div>
 			//~ ';	
 			
-$content = '<span class="AcraForm_'.$bano_name.'">+</span>';
-$content .= "<script>";
-$content .= "$(document).ready(function() {";
-$content .= "$('.AcraForm_$bano_name').balloon({";
-$content .= "  html: true,";
-$content .= "  contents: '<div class=\"sample4\" ><h3>Контроль рейтинга от Эксперт РА</h3>'";
-$content .= "			+'<form action=\"http://127.0.0.1/investment/index.php?do=raexpert-control\" method=\"post\">'";
-$content .= "			+'<label>Выпуск облигации </label>'";
-$content .= "			+'<input type=\"input\" name=\"bond-name\" value=\"$bano_name\" ></br>'";
-$content .= "			+'<input type=\"radio\" name=\"type-control\" value=\"bond\" checked>     <label>Рейтинг облигации https://www.raexpert.ru/database/securities/bonds/1000049874/</label></br>'";
-$content .= "			+'<input type=\"radio\" name=\"type-control\" value=\"emitter\">  <label>Рейтинг эмитента</label></br>'";
-$content .= "			+'<label>Страница</label>			<input name=\"url-control\" value=\"\" size=\"40\">'";
-$content .= "			+'<input type=\"submit\" value=\"Добавить\">'";
-$content .= "			+'</form>'";
-$content .= "			+'</div>'";
-$content .= "});			";
-$content .= "});";
-$content .= "</script>";
+//~ $content = '<span class="AcraForm_'.$bano_name.'IIIIII">'
+//~ .'<input type="checkbox" name="" value="" class="AcraForm_'.$bano_name.'" >'
+//~ .'</span>';
+//~ $content .= "<script>";
+
+
+
+
+//~ $content .= "$(document).ready(function() {";
+//~ $content .= "   $('.AcraForm_$bano_name').hideBalloon();";
+//~ $content .= "   console.log('shown =' + shown  );";
+//~ $content .= "var shown = true;";
+//~ $content .= "$('.AcraForm_$bano_name').balloon({";
+//~ $content .= "$('.AcraForm_$bano_name').on(\"click\", function() {";
+//~ $content .= "   ;";
+
+//~ $content .= "  $(this).hideBalloon();";
+//~ $content .= "  if ($(this).is(':checked')) { $(this).showBalloon() } else { $(this).hideBalloon() }";
+
+//~ $content .= "  shown ? $(this).hideBalloon() : $(this).showBalloon();";
+//~ $content .= "  shown = !shown;";
+//~ $content .= "  }).showBalloon({";
+//~ $content .= "  html: true,";
+//~ $content .= "  contents: '<div class=\"sample4\" ><h3>Контроль рейтинга от Эксперт РА</h3>'";
+//~ $content .= "			+'<form action=\"http://127.0.0.1/investment/index.php?do=raexpert-control\" method=\"post\">'";
+//~ $content .= "			+'<label>Выпуск облигации </label>'";
+//~ $content .= "			+'<input type=\"input\" name=\"bond-name\" value=\"$bano_name\" ></br>'";
+//~ $content .= "			+'<input type=\"radio\" name=\"type-control\" value=\"bond\" checked>     <label>Рейтинг облигации https://www.raexpert.ru/database/securities/bonds/1000049874/</label></br>'";
+//~ $content .= "			+'<input type=\"radio\" name=\"type-control\" value=\"emitter\">  <label>Рейтинг эмитента</label></br>'";
+//~ $content .= "			+'<label>Страница</label>			<input name=\"url-control\" value=\"\" size=\"40\">'";
+//~ $content .= "			+'<input type=\"submit\" value=\"Добавить\">'";
+//~ $content .= "			+'</form>'";
+//~ $content .= "			+'</div>'";
+//~ $content .= "});			";
+//~ $content .= "});";
+//~ $content .= "</script>";
+
+//~ $content .= "<!-- Button trigger modal -->";
+//~ $content .= '<button type="button" data-toggle="modal" data-target="sample4">Launch modal</button>';
+//~ $content .= "  <div class=\"sample4\" ><h3>Контроль рейтинга от Эксперт РА</h3>";
+//~ $content .= "			<form action=\"http://127.0.0.1/investment/index.php?do=raexpert-control\" method=\"post\">";
+//~ $content .= "			<label>Выпуск облигации </label>";
+//~ $content .= "			<input type=\"input\" name=\"bond-name\" value=\"$bano_name\" ></br>";
+//~ $content .= "			<input type=\"radio\" name=\"type-control\" value=\"bond\" checked>     <label>Рейтинг облигации https://www.raexpert.ru/database/securities/bonds/1000049874/</label></br>";
+//~ $content .= "			<input type=\"radio\" name=\"type-control\" value=\"emitter\">  <label>Рейтинг эмитента</label></br>";
+//~ $content .= "			<label>Страница</label>			<input name=\"url-control\" value=\"\" size=\"40\">";
+//~ $content .= "			<input type=\"submit\" value=\"Добавить\">";
+//~ $content .= "			</form>";
+//~ $content .= "			</div>";
+
+$content ='<!-- Button to trigger the modal -->
+<a class="contrast"
+  data-target="modal-example-'.$bano_name.'"
+  onClick="toggleModal(event)">
+  +
+</a>
+
+<!-- Modal -->
+<dialog id="modal-example-'.$bano_name.'">
+  <article>
+    <a href="#close"
+      aria-label="Close"
+      class="close"
+      data-target="modal-example-'.$bano_name.'"
+      onClick="toggleModal(event)">
+    </a>
+    <h3>Контроль рейтинга от Эксперт РА</h3>
+    
+<form action="http://127.0.0.1/investment/index.php" method="post" id="form-'.$bano_name.'">
+
+
+<input type="radio" name="type-control" value="bond" checked>     <label>Рейтинг облигации https://www.raexpert.ru/database/securities/bonds/1000049874/</label></br>
+<input type="radio" name="type-control" value="emitter">  <label>Рейтинг эмитента</label></br>
+<label>Страница</label>			<input type="input" name="do" value="raexpert-control" ></br>
+<label>Страница</label>			<input type="input" name="url-control" value="" size="40"></br>
+<label>Выпуск облигации </label> <input type="input" name="bond-name" value="'.$bano_name.'" ></br>
+</form>    
+    
+    
+    <footer>
+      <a href="#cancel"
+        role="button"
+        class="secondary"
+        data-target="modal-example-'.$bano_name.'"
+        onClick="toggleModal(event)">
+        Cancel
+      </a>
+      <a href="#confirm"
+        role="button"
+        data-target="modal-example-'.$bano_name.'"
+        
+        onClick="$( '."'#form-".$bano_name."'".' ).submit(); toggleModal(event);">
+        Confirm
+      </a>
+    </footer>
+  </article>
+</dialog>';
 		return $content;
 	}
 }

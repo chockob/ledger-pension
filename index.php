@@ -30,6 +30,7 @@ echo '<head>
 	<script src="./js/jquery-3.6.0.min.js"></script>
 	<script src="./js/jquery.balloon.min.js"></script>    
 	<script src="./js/table.js"></script>
+	<script src="./js/modal.min.js"></script>
     
 ';
 
@@ -708,20 +709,22 @@ while ($row = $results->fetchArray()) {
 }
 
 //~ Обработка команды на постановку контроля
-if ($_GET['do'] == 'raexpert-control') {
+if ($_POST['do'] == 'raexpert-control') {
+	
+	
 	if ($_POST['type-control'] == 'bond') {
 		$bond_name = $_POST['bond-name'];
 		$url_control = $_POST['url-control'];
 		$source_file = 'raexpert/'.$bond_name.'.csv';
 		$content_control = file_get_contents($url_control);	
-		//~ echo $content_control;
+		//~ --echo $content_control;
 		$doc = new DOMDocument();
 		$doc->loadHTML(mb_convert_encoding($content_control, 'HTML-ENTITIES', 'UTF-8'), LIBXML_NOERROR);
-//~ var_export($doc);
+//~ var_export($_POST);
 		$elements = $doc->getElementsByTagName('table');
 		$tr = $elements[0]->getElementsByTagName('tr');
-		//~ echo $tr[0]->nodeValue.'</br>';		  
-		//~ echo $tr[1]->nodeValue.'</br>';    
+		//~ --echo $tr[0]->nodeValue.'</br>';		  
+		//~ --echo $tr[1]->nodeValue.'</br>';    
 		$span = $tr[1]->getElementsByTagName('span');
 		echo $span[0]->nodeValue.'</br>';    
 		$raexport_bond_val = trim($span[0]->nodeValue);
@@ -1157,8 +1160,6 @@ while ($row = $results->fetchArray()) {
 				else
 					$css_background = 'color3';
 			}
-			
-			
 			echo '<td class="'.$css_background.'">'
 			.$acra
 			.'</td>';
@@ -1180,7 +1181,6 @@ while ($row = $results->fetchArray()) {
 				elseif (in_array($raexport,$CoreExpertRA->getExpertScala('B')))
 					$css_background = 'color3';				
 			}
-			
 			echo '<td class="'.$css_background.'">'
 			.$raexport
 			.'</td>';
