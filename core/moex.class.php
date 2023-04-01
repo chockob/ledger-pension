@@ -11,7 +11,7 @@ class CoreMOEX {
 	function get_moex_bond_json($bond_secid) {    		
 		//$bond_secid = 'RU000A104UA4';
 		
-		$source_file = 'bond/'.$bond_secid.'.json';	
+		$source_file = 'db/bond/'.$bond_secid.'.json';	
 		
 		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
 		$dateEnd = date_create(date('d.m.Y',time()));
@@ -40,7 +40,11 @@ class CoreMOEX {
 		//print_r($decoded_json);
 		$res = array();	
 		
-		$res['NAME'] 				= $decoded_json['securities']['data'][0][20];  //<th>Полное наименование</th>	
+		
+		if (preg_match("/SU[a-zA-Z0-9]{10}/", $bond_secid) )
+			$res['NAME'] 				= $decoded_json['securities']['data'][0][19];  //<th>Полное наименование</th>	
+		else
+			$res['NAME'] 				= $decoded_json['securities']['data'][0][20];  //<th>Полное наименование</th>	
 		$res['ACCRUEDINT'] 			= $decoded_json['securities']['data'][0][7];  //<th>НКД на дату расчетов</th>
 		$res['MATDATE'] 			= $decoded_json['securities']['data'][0][13];  //<th>Дата погашения</th>
 		$res['PREVLEGALCLOSEPRICE'] 			= $decoded_json['securities']['data'][0][3];  //<th>Цена пред. дня, % к номиналу</th>
@@ -48,7 +52,8 @@ class CoreMOEX {
 		$res['LISTLEVEL'] 			= $decoded_json['securities']['data'][0][34];  //<th>Уровень листинга</th>	
 		$res['FACEVALUE'] 			= $decoded_json['securities']['data'][0][10];   //<th>Номинальная стоимость</th>
 		$res['COUPONPERIOD'] 	= $decoded_json['securities']['data'][0][15];  //<th>Перио-дичность выплаты купона в год</th>
-		$res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][36];   //<th>Ставка купона, %</th>	
+		//~ $res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][36];   //<th>Ставка купона, %</th>	
+		$res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][35];   //<th>Ставка купона, %</th>	
 		$res['COUPONVALUE'] 		= $decoded_json['securities']['data'][0][5];   //<th>Размер купона</th>	
 		
 		
@@ -56,7 +61,8 @@ class CoreMOEX {
 		//~ 4B02-04-87154-H-002P
 		
 		$matches = null;
-		$returnValue = preg_match('/^[A-Z0-9]*-[A-Z0-9]*-([A-Z0-9]*-[A-Z0-9]*)/', $decoded_json['securities']['data'][0][31], $matches);
+		//~ $returnValue = preg_match('/^[A-Z0-9]*-[A-Z0-9]*-([A-Z0-9]*-[A-Z0-9]*)/', $decoded_json['securities']['data'][0][31], $matches);
+		$returnValue = preg_match('/^[A-Z0-9]*-[A-Z0-9]*-([A-Z0-9]*-[A-Z0-9]*)/', $decoded_json['securities']['data'][0][30], $matches);
 		
 		$res['REGNUMBER'] 		= $matches[1];   //<th>Размер купона</th>	
 		

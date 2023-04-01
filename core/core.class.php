@@ -6,6 +6,67 @@
 class CoreLedgerPension {
 
 
+	function GetHtmlHead() {
+		$cont =	'';
+		$cont .= "<!doctype html>".PHP_EOL;
+		$cont .= '<html data-theme="dark">'.PHP_EOL;
+		$cont .= '<head>
+
+		 <meta charset="utf-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+			
+			
+			<link rel="stylesheet" href="style.css">
+			<!--
+			<link rel="stylesheet" href="css/pico.css">
+			
+			!-->
+			
+			<script src="./js/jquery-3.6.0.min.js"></script>
+			
+			<script src="./js/table.js"></script>
+			
+			<!--
+			<script src="./js/jquery.balloon.min.js"></script>    
+			
+			<script src="./js/modal.min.js"></script>
+			
+			!-->
+
+		<link href="./jquery-editable/css/jquery-editable.css" rel="stylesheet"/>
+		<script src="./jquery-editable/js/jquery-editable-poshytip.min.js"></script>
+			
+		';
+
+		//~ echo "
+		//~ <link rel=\"stylesheet\" href=\"./style.css\">
+
+
+		//~ <script>
+		//~ $(document).ready(function(){
+			//~ console.log('id=');
+			//~ $('.btn_tx').click(function() {
+				//~ var s = $(this).attr('id');
+				//~ console.log('id=' + s);
+				//~ $('#tx_' + s).toggle();
+			//~ });
+			
+			   
+		//~ });
+		//~ </script>
+
+
+		//~ ";
+
+
+		$cont .= "</head>".PHP_EOL;
+		$cont .= "<body>".PHP_EOL;
+		
+		$cont .= '<p><a href="./index.php?do=shares">Акции</a> | <a href="./index.php?do=bonds">Облигации</a></p>'.PHP_EOL;
+		
+		return $cont;
+	}
+
 	//~ ---------------- 
 	//~ Получить наименование эмитента по из кода облигации
 
@@ -13,7 +74,7 @@ class CoreLedgerPension {
 		
 		//~ $emitter_id = '16643-A';
 			
-		$source_file = 'emitter/'.$emitter_id.'.json';	
+		$source_file = 'db/emitter/'.$emitter_id.'.json';	
 		
 		$html = '';
 		$result = 'EMPTY';

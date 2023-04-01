@@ -31,7 +31,7 @@ class CoreExpertRA {
 	//~ Рейтинг Эксперт РА по выпуску облигации
 	public function get_raexpert_rate_bond($bond) {
 		$result = '';
-		$source_file = 'raexpert/'.$bond.'.csv';
+		$source_file = 'db/raexpert/'.$bond.'.csv';
 		$a_csv = '';
 		if (file_exists($source_file)) {
 			//~ echo $source_file;

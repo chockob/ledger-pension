@@ -20,7 +20,7 @@ class CoreAcra {
 	//~ ПОЛУЧИТЬ АКРА РЕЙТИНГ ПО ЭМИССИИ
 	public function get_acra_rate_emission($emitter_id) {
 		//~ $emitter_id = 'RU000A104ZC9';
-		$source_file = 'acra-ratings/'.$emitter_id.'.json';	
+		$source_file = 'db/acra/'.$emitter_id.'.json';	
 		
 		$html = '';
 		$result = 'EMPTY';
