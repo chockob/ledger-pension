@@ -17,25 +17,11 @@ class CoreLedgerPension {
 			
 			
 			<link rel="stylesheet" href="style.css">
-			<!--
-			<link rel="stylesheet" href="css/pico.css">
-			
-			!-->
 			
 			<script src="./js/jquery-3.6.0.min.js"></script>
-			
-			<script src="./js/table.js"></script>
-			
-			<!--
-			<script src="./js/jquery.balloon.min.js"></script>    
-			
-			<script src="./js/modal.min.js"></script>
-			
-			!-->
 
-		<link href="./jquery-editable/css/jquery-editable.css" rel="stylesheet"/>
-		<script src="./jquery-editable/js/jquery-editable-poshytip.min.js"></script>
 			
+			<script src="./js/table.js"></script>			
 		';
 
 		//~ echo "
@@ -66,8 +52,61 @@ class CoreLedgerPension {
 		
 		return $cont;
 	}
+	
+	function GetHtmlFoot() {	
+		$cont = '';
+		$cont .= "</body>".PHP_EOL;
+		$cont .= "</html>".PHP_EOL;
+		return $cont;
+	}
 
-	//~ ---------------- 
+
+	// ПОЛУЧЕНИЕ ПЛАНОВОЙ ДОЛИ В ПОРТФЕЛЕ
+	function GetSharesColone() {  
+		//$bond_secid = 'RU000A104UA4';
+		
+		$source_file = 'cfg/shares_colone.json';		
+		//~ if (file_exists($source_file)) {
+
+			//~ $dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+			//~ $dateEnd = date_create(date('d.m.Y',time()));
+			//~ $dateEnd->setTime(24,0,0);
+			//~ $diff = date_diff($dateStart,$dateEnd);
+		
+			//~ if ($diff->format("%a") > 1 ) {
+				//~ $BOARDID = 'TQBR';		
+				//~ $people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
+				//~ file_put_contents($source_file, $people_json);
+			//~ }		
+		//~ }
+		//~ else {
+			//~ $BOARDID = 'TQBR';		
+			//~ $people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
+			//~ file_put_contents($source_file, $people_json);
+		//~ }
+			
+
+		$source_cont = file_get_contents($source_file);	
+		
+		//~ echo $source_cont;
+			
+		$json_cont = json_decode($source_cont, true);		
+		//~ print_r($json_cont);
+		
+		//~ $res = array();	
+		//~ if (!empty($json_cont)) {
+			//~ $res['NAME'] 				= $decoded_json['securities']['data'][0][9];  //<th>Полное наименование</th>	
+			//~ $res['LOTSIZE'] 			= $decoded_json['securities']['data'][0][4];  //<th>	Количество ценных бумаг в одном стандартном лоте</th>
+			//~ $res['DECIMALS'] 			= $decoded_json['securities']['data'][0][8];  //<th>Точность, знаков после запятой</th>
+			//~ $res['PREVLEGALCLOSEPRICE'] 			= $decoded_json['securities']['data'][0][22];  //<th>Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР</th>
+		//~ }
+		
+		
+		return $json_cont;
+		
+		
+	}
+
 	//~ Получить наименование эмитента по из кода облигации
 
 	function get_emitter_name($emitter_id) {

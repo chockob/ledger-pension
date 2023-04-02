@@ -3,6 +3,62 @@
 class CoreMOEX {
 
 
+
+
+
+	// ПОЛУЧЕНИЕ СВЕДЕНИЙ ОБ АКЦИИ НА МОСБИРЖА
+	function get_moex_shares_json($shares_secid) {  
+		//$bond_secid = 'RU000A104UA4';
+		
+		$source_file = 'db/shares/'.$shares_secid.'.json';		
+		if (file_exists($source_file)) {
+
+			$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+			$dateEnd = date_create(date('d.m.Y',time()));
+			$dateEnd->setTime(24,0,0);
+			$diff = date_diff($dateStart,$dateEnd);
+		
+			if ($diff->format("%a") > 1 ) {
+				$BOARDID = 'TQBR';		
+				$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
+				file_put_contents($source_file, $people_json);
+			}		
+		}
+		else {
+			$BOARDID = 'TQBR';		
+			$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
+			file_put_contents($source_file, $people_json);
+		}
+			
+
+		$people_json = file_get_contents($source_file);	
+		
+		//~ echo $people_json;
+			
+		$decoded_json = json_decode($people_json, true);		
+		//~ print_r($decoded_json);
+		
+		$res = array();	
+		if (!empty($decoded_json['securities']['data'])) {
+			$res['NAME'] 				= $decoded_json['securities']['data'][0][9];  //<th>Полное наименование</th>	
+			$res['LOTSIZE'] 			= $decoded_json['securities']['data'][0][4];  //<th>	Количество ценных бумаг в одном стандартном лоте</th>
+			$res['DECIMALS'] 			= $decoded_json['securities']['data'][0][8];  //<th>Точность, знаков после запятой</th>
+			$res['PREVLEGALCLOSEPRICE'] 			= $decoded_json['securities']['data'][0][22];  //<th>Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР</th>
+			//$res['STATUS'] 			= $decoded_json['securities']['data'][0][12];  //<th>Статус</th>	
+			//$res['LISTLEVEL'] 			= $decoded_json['securities']['data'][0][34];  //<th>Уровень листинга</th>	
+			//$res['FACEVALUE'] 			= $decoded_json['securities']['data'][0][10];   //<th>Номинальная стоимость</th>
+			//$res['COUPONPERIOD'] 	= $decoded_json['securities']['data'][0][15];  //<th>Перио-дичность выплаты купона в год</th>
+			//$res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][36];   //<th>Ставка купона, %</th>	
+			//$res['COUPONVALUE'] 		= $decoded_json['securities']['data'][0][5];   //<th>Размер купона</th>	
+		}
+		//~ exit;
+		
+		return $res;
+		
+		
+	}
+
+
 	//----------------------------------------------------------------------
 
 	// ИНФОРМАЦИЯ ПО ОБЛИГАЦИИ

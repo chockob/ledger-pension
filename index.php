@@ -85,83 +85,6 @@ CREATE TABLE "securities_price_db" (
     
 
 
-// ИНФОРМАЦИЯ ПО АКЦИИ
-// https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/MTSS.jsonp?iss.meta=off&iss.only=securities&lang=ru
-
-//{
-//"securities": {
-	//"columns": [
-	//"SECID", "BOARDID", "SHORTNAME", "PREVPRICE", "LOTSIZE", "FACEVALUE", "STATUS", "BOARDNAME", "DECIMALS", "SECNAME", 
-	//"REMARKS", "MARKETCODE", "INSTRID", "SECTORID", "MINSTEP", "PREVWAPRICE", "FACEUNIT", "PREVDATE", "ISSUESIZE", "ISIN", 
-	//"LATNAME", "REGNUMBER", "PREVLEGALCLOSEPRICE", "PREVADMITTEDQUOTE", "CURRENCYID", "SECTYPE", "LISTLEVEL", "SETTLEDATE"], 
-	//"data": [
-		//["MTSS", "TQBR", "МТС-ао", 236.15, 10, 0.1, "A", "Т+: Акции и ДР - безадрес.", 2, "Мобильные ТелеСистемы ПАО ао", 
-		//null, "FNDT", "EQIN", null, 0.05, 236.2, "SUR", "2023-01-05", 1998381575, "RU0007775219", 
-		//"MTS", "1-01-04715-A", 236.4, 236.4, "SUR", "1", 1, "2023-01-10"]
-	//]
-//}}
-//-------------------------------------------
-// ПОЛУЧЕНИЕ СВЕДЕНИЙ ОБ АКЦИИ НА МОСБИРЖА
-//-------------------------------------------
-function get_moex_shares_json($shares_secid, $update_force = false) {  
-	//$bond_secid = 'RU000A104UA4';
-	
-	$source_file = 'db/shares/'.$shares_secid.'.json';		
-
-	if ($update_force == true) {				
-		$BOARDID = 'TQBR';		
-		$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
-		file_put_contents($source_file, $people_json);
-		
-	}
-	
-	if (file_exists($source_file)) {
-
-		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
-		$dateEnd = date_create(date('d.m.Y',time()));
-		$dateEnd->setTime(24,0,0);
-		$diff = date_diff($dateStart,$dateEnd);
-	
-		if ($diff->format("%a") > 1 ) {
-			$BOARDID = 'TQBR';		
-			$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
-			file_put_contents($source_file, $people_json);
-		}		
-	}
-	else {
-		$BOARDID = 'TQBR';		
-		$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
-		file_put_contents($source_file, $people_json);
-	}
-		
-
-	$people_json = file_get_contents($source_file);	
-	
-	//~ echo $people_json;
-		
-	$decoded_json = json_decode($people_json, true);		
-	//~ print_r($decoded_json);
-	
-	$res = array();	
-	if (!empty($decoded_json['securities']['data'])) {
-		$res['NAME'] 				= $decoded_json['securities']['data'][0][9];  //<th>Полное наименование</th>	
-		$res['LOTSIZE'] 			= $decoded_json['securities']['data'][0][4];  //<th>	Количество ценных бумаг в одном стандартном лоте</th>
-		$res['DECIMALS'] 			= $decoded_json['securities']['data'][0][8];  //<th>Точность, знаков после запятой</th>
-		$res['PREVLEGALCLOSEPRICE'] 			= $decoded_json['securities']['data'][0][22];  //<th>Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР</th>
-		//$res['STATUS'] 			= $decoded_json['securities']['data'][0][12];  //<th>Статус</th>	
-		//$res['LISTLEVEL'] 			= $decoded_json['securities']['data'][0][34];  //<th>Уровень листинга</th>	
-		//$res['FACEVALUE'] 			= $decoded_json['securities']['data'][0][10];   //<th>Номинальная стоимость</th>
-		//$res['COUPONPERIOD'] 	= $decoded_json['securities']['data'][0][15];  //<th>Перио-дичность выплаты купона в год</th>
-		//$res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][36];   //<th>Ставка купона, %</th>	
-		//$res['COUPONVALUE'] 		= $decoded_json['securities']['data'][0][5];   //<th>Размер купона</th>	
-	}
-	//~ exit;
-	
-	return $res;
-	
-	
-}
-
 //------------------------------------------
 // КУПОННЫЙ КАЛЕНДАРЬ
 // https://iss.moex.com/iss/securities/RU000A104UA4/bondization.json?iss.json=extended&iss.meta=off&iss.only=coupons&lang=ru&limit=unlimited
@@ -317,8 +240,6 @@ if ($_GET['do'] == 'update_share') {
 	
 	$share = $_GET['share'];
 	
-	get_moex_shares_json($share, true);
-	
 }
 
 echo $Core->GetHtmlHead();
@@ -349,8 +270,13 @@ if ($_GET['do'] == 'shares') {
 	if ($row_total_investment = $res_total_investment->fetchArray()) {
 		$total_investment = $row_total_investment['res_value_num'];
 	}
-	//~ ---------------------
-	//~ подсчет Значения итого
+	
+	//~ ПЛАНОВАЯ ДОЛЯ АКЦИИ В ПОРТФЕЛЕ
+	$SharesColone = $Core->GetSharesColone();
+	//~ var_export($SharesColone);
+	
+	
+	//~ ПОДСЧЕТ ЗНАЧЕНИЯ ИТОГО
 	$sql_q = '
 	SELECT accounts.name,
 		SUM(splits.quantity_num / splits.quantity_denom) AS res_quantity_denom  
@@ -362,26 +288,24 @@ if ($_GET['do'] == 'shares') {
 		)
 	GROUP BY name ';
 
+	$SharesColoneSum = 0;
 	$total_prevlegalcloseprice = 0;
 	$moex_shares = array();
 
 
 	$results = $db->query($sql_q);
 	while ($row = $results->fetchArray()) {
-
-
 		
-
-		$moex_shares[$row['name']] = get_moex_shares_json($row['name']);
+		$moex_shares[$row['name']] = $CoreMOEX->get_moex_shares_json($row['name']);
 		//~ var_export($moex_shares);
+	
+		if (!empty($SharesColone['colone'][$row['name']]))
+			$SharesColoneSum += $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'];
 		
 		if (!empty($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE']))	
 			$total_prevlegalcloseprice += $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'];				
 	}
 
-
-
-	//~ ------------------
 	//~ Вывод акции
 
 	$sql_q = '
@@ -402,9 +326,8 @@ if ($_GET['do'] == 'shares') {
 
 		
 
-
 	echo "<h1>Акции</h1>";
-	echo '<table style="width:70%;">';
+	echo '<table style="width:70%;" id="table_editable">';
 	echo "<thead>";    
 	echo '
 	<tr>
@@ -412,8 +335,7 @@ if ($_GET['do'] == 'shares') {
 	<th rowspan="2">Наименование</th>
 	<th colspan="5">Базис</th>
 	<th colspan="4">Значение</th>
-	<th colspan="4">Результат</th>
-	<th colspan="2">План</th>
+	<th colspan="6">Результат</th>
 	</tr> 
 
 	<tr>  			
@@ -432,10 +354,12 @@ if ($_GET['do'] == 'shares') {
 	<th><a title="Разница (&#956;-цена - Цена)">&Delta;&nbsp;(пп)</a></th>
 
 	<th><a title="Сумма полученных дивидендов">&sum;&nbsp;Див.&nbsp;(₽)</a></th>
-	<th><a title="Возвратность инвестиционных вложений. Сумма дивидендов / Базис * 100">ROI&nbsp;(%)</a></th>
+	<th><a title="Возвратность инвестиционных вложений. Сумма дивидендов / Базис * 100">ROI&nbsp;(%)</a></th>';
 
-	<th><a title="Плановое значение пропорции акции в портфеле">&Colon;&nbsp;(%)</a></th>
-	<th><a title="Разница &Colon;(План - Значение)">&Delta;&nbsp;(пп)</a></th>
+	echo '<th><a title="Плановое значение пропорции акции в портфеле">'.array_sum($SharesColone['colone']).' &Colon;&nbsp;(%)</a>';
+	//~ echo ( array_sum($SharesColone['colone']) > 100) ? array_sum($SharesColone['colone']) : '';
+	echo '</th>';
+	echo '<th><a title="Разница &Colon;(План - Значение)">&Delta;&nbsp;(пп)</a></th>
 
 
 	</tr>';
@@ -454,7 +378,13 @@ if ($_GET['do'] == 'shares') {
 		//~ $moex_shares = get_moex_shares_json($row['name']);
 		
 		echo '<tr>';
-		echo '<td><a href="/investment/index.php?do=update_share&share='.$row['name'].'">'.$row['name'].'</a></td>';
+
+		$css_background_portfolio = '';
+		if (!empty($SharesColone['colone'][$row['name']]))
+			$css_background_portfolio = 'color1';
+		
+		
+		echo '<td class="'.$css_background_portfolio.'">'.$row['name'].'</td>';
 		echo '<td>'.str_replace(' ', '&nbsp;', $row['description']).'</td>';
 		
 				//echo '<td class="number">'.number_format($row['res_quantity_denom'], 0, ',', ' ').'</td>';
@@ -514,17 +444,28 @@ if ($_GET['do'] == 'shares') {
 					echo '<td class="number">';
 					echo number_format( $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'] , 2, ',', '&nbsp;');
 					echo '</td>';
+
+
 					// доля портфеля
-					//~ echo '<td class="number">';	
-					$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
-					if ( $portfolio_shares_colone >= 10)
-						$css_background = 'color3';
-					elseif ($portfolio_shares_colone >= 5)
-						$css_background = 'color1';
+					
+
+					if (!empty($SharesColone['colone'][$row['name']]))						
+						$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$SharesColoneSum);
 					else
-						$css_background = 'color2';
-				
-					echo '<td class="number '.$css_background.'">';
+						$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
+					
+					$colone_pp = $portfolio_shares_colone-$SharesColone['colone'][$row['name']];
+					$css_background_colone = '';
+					if (!empty($SharesColone['colone'][$row['name']]))
+						if (  $colone_pp < 0.69 && $colone_pp > -0.69)
+							$css_background_colone = 'color1';
+						elseif (  $colone_pp < 0.99 && $colone_pp > -0.99)
+							$css_background_colone = 'color2';
+						else
+							$css_background_colone = 'color3';
+							
+					
+					echo '<td class="number '.$css_background_colone.'">';
 					echo ($row['res_quantity_denom'] > 0) 
 					? number_format($portfolio_shares_colone, 2, ',', '&nbsp;') 
 					: '';
@@ -599,10 +540,18 @@ if ($_GET['do'] == 'shares') {
 				echo '</td>';
 				
 				//~ плановая доля
+			
 				echo '<td class="number">';
+				echo $SharesColone['colone'][$row['name']];
 				echo '</td>';
+				
 				//~ плановая доля (разница пп)
-				echo '<td class="number">';
+				echo '<td class="number '.$css_background_colone.'">';
+				if (!empty($SharesColone['colone'][$row['name']])) {
+					if ($colone_pp > 0)
+						echo '&plus;';
+					echo number_format($colone_pp,2,',','&nbspl');
+				}
 				echo '</td>';
 				
 				
@@ -630,21 +579,30 @@ if ($_GET['do'] == 'shares') {
 	//echo '<th></th><th>&sum;</th>';
 	//echo "</tr>";
 	echo "<tr>";
-	echo '<td>Базис</td><td class="number">&sum;</td><td class="number">'.number_format($total_investment, 2, ',', ' ').'</td>';
+	echo '<td>Базис инвестиций</td><td class="number">&sum;</td><td class="number">'.number_format($total_investment, 2, ',', ' ').'</td>';
 	echo "</tr>";
 
 	echo "<tr>";
-	echo '<td>Значение</td><td class="number">&sum;</td><td class="number"> '.number_format($total_prevlegalcloseprice, 2, ',', ' ').'</td>';
+	echo '<td>Значение инвестиций</td><td class="number">&sum;</td><td class="number"> '.number_format($total_prevlegalcloseprice, 2, ',', ' ').'</td>';
 	echo "</tr>";
 	echo "<tr>";
 	echo '<td></td><td class="number">&Delta;</td><td class="number"> '.number_format($total_prevlegalcloseprice-$total_investment, 2, ',', ' ').'</td>';
 	echo "</tr>";
+
+	
 	echo "<tr>";
 	//echo '<th></th><th></th><th></th>';
 	//echo '<th></th>';
 	echo '<td>Дивиденды</td><td class="number"> &sum; </td><td class="number"> '.number_format($total_gnucash_dividendization, 2, ',', ' ').'</td>';
 	echo "</tr>";
 	echo "<tr>";
+	
+	
+	echo "<tr>";
+	echo '<td>Значение портфеля</td><td class="number">&sum;</td><td class="number"> '.number_format($SharesColoneSum, 2, ',', ' ').'</td>';
+	echo "</tr>";	
+	
+	
 	echo '<td>ROI</td><td class="number">%</td><td class="number">'.number_format($total_gnucash_dividendization / $total_investment * 100, 2, ',', ' ').'</td>';
 	//echo '<th></th><th></th>';
 	//echo '<th></th><th></th>';
@@ -1266,7 +1224,7 @@ if ($_GET['do'] == 'bonds') {
 	echo '<tr><td colspan="2" style="text-align:right;">ROI (%)</td><td class="number">'.number_format($sum_gnucash_bondization / $total_investment * 100, 2, ',', '&nbsp;').'</td></tr>';
 	echo '<tr><td colspan="2" style="text-align:right;">Ставка купона &#956; (%)</td><td class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', '&nbsp;').'</td></tr>';
 	echo "</table>";
-	echo '<a href="#" id="username" data-type="text" data-pk="1" data-url="/post" data-title="Enter username">superuser</a>';
+	
 
 }
 
@@ -1283,10 +1241,7 @@ if ($_GET['do'] == 'bonds') {
 
 
 
-echo "</body>".PHP_EOL;
-echo "</html>".PHP_EOL;
-
-
+	echo $Core->GetHtmlFoot;
    
 			
 
