@@ -665,32 +665,7 @@ if ($_GET['do'] == 'bonds') {
 	}
 
 
-	//~ Обработка команды на постановку контроля
-	if ($_POST['do'] == 'raexpert-control') {
-		
-		
-		if ($_POST['type-control'] == 'bond') {
-			$bond_name = $_POST['bond-name'];
-			$url_control = $_POST['url-control'];
-			$source_file = 'db/raexpert/'.$bond_name.'.csv';
-			$content_control = file_get_contents($url_control);	
-			//~ --echo $content_control;
-			$doc = new DOMDocument();
-			$doc->loadHTML(mb_convert_encoding($content_control, 'HTML-ENTITIES', 'UTF-8'), LIBXML_NOERROR);
-	//~ var_export($_POST);
-			$elements = $doc->getElementsByTagName('table');
-			$tr = $elements[0]->getElementsByTagName('tr');
-			//~ --echo $tr[0]->nodeValue.'</br>';		  
-			//~ --echo $tr[1]->nodeValue.'</br>';    
-			$span = $tr[1]->getElementsByTagName('span');
-			echo $span[0]->nodeValue.'</br>';    
-			$raexport_bond_val = trim($span[0]->nodeValue);
-			$td = $tr[1]->getElementsByTagName('td');
-			echo $td[1]->nodeValue.'</br>';    
-			$raexport_bond_d = trim($td[1]->nodeValue);
-			file_put_contents($source_file, "$raexport_bond_d;$raexport_bond_val;$url_control");  
-		}
-	}
+
 
 
 
@@ -742,7 +717,17 @@ if ($_GET['do'] == 'bonds') {
 	/ Период выплаты (количество в год) купонов">Купоны</th>
 
 	<th rowspan="2">Дата погашения</th>
-	<th colspan="2">Рейтинг</th>';
+	<th rowspan="2" title="AAA(RU)
+
+	AA+(RU)
+	AA(RU)
+	AA-(RU)
+
+	A+(RU)
+	A(RU)
+	A-(RU)
+	">Рейтинг АКРА Экперт&nbsp;РА</th>
+	';
 
 
 		$year_today = date("Y");
@@ -778,20 +763,7 @@ if ($_GET['do'] == 'bonds') {
 	<th><a title="Размер">₽</a></th>
 	<th><a title="Ставка">%</a></th>
 	<th><a title="Количество">шт</a></th>
-
-	<th title="AAA(RU)
-
-	AA+(RU)
-	AA(RU)
-	AA-(RU)
-
-	A+(RU)
-	A(RU)
-	A-(RU)
-	">&nbsp;&nbsp;АКРА&nbsp;&nbsp;</th>
-
-
-	<th>Экперт&nbsp;РА</th>';
+';
 
 	$starttime = microtime(true); // Top of page
 
@@ -1110,45 +1082,12 @@ if ($_GET['do'] == 'bonds') {
 				$css_background_cupon = $css_background;
 				echo '<td class="'.$css_background.'" >'.date('d.m.Y', strtotime($bond[$row['name']]['MATDATE'])).'</td>';
 
-				//~ рейтинг АКРА
-				
+				//~ рейтинг АКРА				
 				$acra = $CoreAcra->get_acra_rate_emission($row['name']);
-				
-				$css_background = '';			
-				if (!empty($acra)) {
-					if (in_array($acra,$CoreAcra->getAcraScala('AAA')))
-						$css_background = 'color1';
-					elseif (in_array($acra,$CoreAcra->getAcraScala('AA')))
-						$css_background = 'color1';
-					elseif (in_array($acra,$CoreAcra->getAcraScala('A')))
-						$css_background = 'color2';
-					else
-						$css_background = 'color3';
-				}
-				echo '<td class="'.$css_background.'">'
-				.$acra
-				.'</td>';
-				
+				echo '<td>'.$acra;
 				//~ Рейтинг Эксперт РА
 				$raexport = $CoreExpertRA->get_raexpert_rate_bond($row['name']);
-				$css_background = '';			
-				if (!empty($raexport)) {
-					if (in_array($raexport,$CoreExpertRA->getExpertScala('AAA')))
-						$css_background = 'color1';
-					elseif (in_array($raexport,$CoreExpertRA->getExpertScala('AA')))
-						$css_background = 'color1';
-					elseif (in_array($raexport,$CoreExpertRA->getExpertScala('A')))
-						$css_background = 'color1';				
-					elseif (in_array($raexport,$CoreExpertRA->getExpertScala('BBB')))
-						$css_background = 'color2';				
-					elseif (in_array($raexport,$CoreExpertRA->getExpertScala('BB')))
-						$css_background = 'color3';				
-					elseif (in_array($raexport,$CoreExpertRA->getExpertScala('B')))
-						$css_background = 'color3';				
-				}
-				echo '<td class="'.$css_background.'">'
-				.$raexport
-				.'</td>';
+				echo $raexport.'</td>';
 				
 				//~ календарь выплаты купонов
 				for ($i=0;  $i < $row['res_quantity_denom']; $i++)
@@ -1199,7 +1138,7 @@ if ($_GET['do'] == 'bonds') {
 	//~ echo "<tfoot>";
 
 
-	echo '<tr><td colspan="22" style="text-align:right;">Погашение</br>Купоны</td>';
+	echo '<tr><td colspan="21" style="text-align:right;">Погашение</br>Купоны</td>';
 
 	for ($i=0;$i<$bondization_period;$i++) {
 		if ($css_background == 'color1') 
@@ -1241,7 +1180,7 @@ if ($_GET['do'] == 'bonds') {
 
 
 
-	echo $Core->GetHtmlFoot;
+	echo $Core->GetHtmlFoot();
    
 			
 

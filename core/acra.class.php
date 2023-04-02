@@ -67,7 +67,10 @@ class CoreAcra {
 		
 		
 		
-		$raiting = strtoupper( $res['data']['items'][0]['info']['rate']['value']['title'] );
+		
+		$raiting = '<a href="https://www.acra-ratings.ru'.$res['data']['items'][0]['url'].'" >'
+		.strtoupper( $res['data']['items'][0]['info']['rate']['value']['title'] )
+		.'</a>';
 		
 		$result = $raiting;
 		

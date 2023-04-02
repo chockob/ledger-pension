@@ -32,73 +32,57 @@ class CoreExpertRA {
 	public function get_raexpert_rate_bond($bond) {
 		$result = '';
 		$source_file = 'db/raexpert/'.$bond.'.csv';
-		$a_csv = '';
 		if (file_exists($source_file)) {
 			//~ echo $source_file;
-			$a_csv = str_getcsv( file_get_contents($source_file),';' );	
-			//~ print_r($result);
+			$source_cont = str_getcsv( file_get_contents($source_file),';' );	
+			
 			//~ $result = '<span title="'.$a_csv[0].'" >'.$a_csv[1].'</span>';
-			$result = $a_csv[1];
+			//~ $result = $source_cont[1];
+			$result = '<a href="'.$source_cont[2].'" title="'.$source_cont[0].'">'.$source_cont[1].'</a>';
+		
+		
+			$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+			$dateEnd = date_create(date('d.m.Y',time()));
+			$dateEnd->setTime(24,0,0);
+			$diff = date_diff($dateStart,$dateEnd);
+		
+			if ($diff->format("%a") > 30 ) {
+				
+				//~ print_r($source_cont);
+				
+				$doc = new DOMDocument();
+				$doc->loadHTML(mb_convert_encoding(file_get_contents($source_cont[2]), 'HTML-ENTITIES', 'UTF-8'), LIBXML_NOERROR);
+				
+				$elements = $doc->getElementsByTagName('table');
+				
+				//~ echo $elements[0]->nodeValue.'</br>';		
+				
+				
+				$tr = $elements[0]->getElementsByTagName('tr');
+				
+				
+				//~ --echo $tr[0]->nodeValue.'</br>';		  
+				//~ --echo $tr[1]->nodeValue.'</br>';    
+				$span = $tr[1]->getElementsByTagName('span');
+				//~ echo $span[0]->nodeValue.'</br>';    
+				$raexport_bond_val = trim($span[0]->nodeValue);
+				$td = $tr[1]->getElementsByTagName('td');
+				//~ echo $td[1]->nodeValue.'</br>';    
+				$raexport_bond_d = trim($td[1]->nodeValue);
+				//~ echo "</br>$raexport_bond_d;$raexport_bond_val;".$source_cont[2];  
+				file_put_contents($source_file, "$raexport_bond_d;$raexport_bond_val;".$source_cont[2]);  
+				
+				$result = '<a href="'.$source_cont[2].'" title="'.$raexport_bond_d.'">'.$raexport_bond_val.'</a>';
+			}	
 		}
-		else
-			$result = $this->get_raexpert_form_control($bond);
+			
+			
+					
+		
 		return $result;
 	}
 	
 	
-	//~ Форма постановки на котроль рейтинга Эксперт РА
-	function get_raexpert_form_control($bano_name) {
-		
-
-$content ='<!-- Button to trigger the modal -->
-<a class="contrast"
-  data-target="modal-example-'.$bano_name.'"
-  onClick="toggleModal(event)">
-  +
-</a>
-
-<!-- Modal -->
-<dialog id="modal-example-'.$bano_name.'">
-  <article>
-    <a href="#close"
-      aria-label="Close"
-      class="close"
-      data-target="modal-example-'.$bano_name.'"
-      onClick="toggleModal(event)">
-    </a>
-    <h3>Контроль рейтинга от Эксперт РА</h3>
-    
-<form action="http://127.0.0.1/investment/index.php" method="post" id="form-'.$bano_name.'">
-
-
-<input type="radio" name="type-control" value="bond" checked>     <label>Рейтинг облигации https://www.raexpert.ru/database/securities/bonds/1000049874/</label></br>
-<input type="radio" name="type-control" value="emitter">  <label>Рейтинг эмитента</label></br>
-<label>Страница</label>			<input type="input" name="do" value="raexpert-control" ></br>
-<label>Страница</label>			<input type="input" name="url-control" value="" size="40"></br>
-<label>Выпуск облигации </label> <input type="input" name="bond-name" value="'.$bano_name.'" ></br>
-</form>    
-    
-    
-    <footer>
-      <a href="#cancel"
-        role="button"
-        class="secondary"
-        data-target="modal-example-'.$bano_name.'"
-        onClick="toggleModal(event)">
-        Cancel
-      </a>
-      <a href="#confirm"
-        role="button"
-        data-target="modal-example-'.$bano_name.'"
-        
-        onClick="$( '."'#form-".$bano_name."'".' ).submit(); toggleModal(event);">
-        Confirm
-      </a>
-    </footer>
-  </article>
-</dialog>';
-		return $content;
-	}
 }
 
 
