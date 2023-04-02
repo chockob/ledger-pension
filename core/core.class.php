@@ -191,7 +191,153 @@ class CoreLedgerPension {
 	}
 
 
+
+	//~ ПОСЛЕДНИЙ ДЕНЬ ПОКУПКИ АКЦИИ 
+	function get_gnucash_last_daybuy_shares($shares_secid) {
+		$db = new SQLite3('/home/chockob/Documents/ledger/ledger-home.sqlite.gnucash'); //, SQLITE3_OPEN_READWRITE);
+		$sql = 'SELECT 
+	accounts.name,
+	transactions.post_date
+	 FROM transactions 
+	 LEFT JOIN splits 
+	 LEFT JOIN accounts  
+		WHERE (
+			accounts.parent_guid="59a27d1443e1446eaabf84150d88aa39"
+			AND splits.account_guid=accounts.guid
+			AND transactions.guid = splits.tx_guid
+			AND splits.action = "Покупка"
+			AND accounts.name = "'.$shares_secid.'"		
+		)	
+
+	ORDER BY transactions.post_date DESC
+	';
+
+		$res = '';
+		$results = $db->query($sql);
+		if ($row = $results->fetchArray()) {
+			$res = $row['post_date'];
+		}	
+		$db->close();
+		return $res;
+	}
+
+
 	
+
+	// ПОЛУЧЕНО ДИВИДЕНДОВ ИЗ GNUCASH
+	function get_gnucash_dividendization() {
+		$db = new SQLite3('/home/chockob/Documents/ledger/ledger-home.sqlite.gnucash'); //, SQLITE3_OPEN_READWRITE);
+		$sql = 'SELECT 
+	---transactions.post_date,
+	accounts.name,
+	accounts.account_type,
+	--splits.*,
+	SUM((splits.quantity_num * -1) / splits.quantity_denom) AS res_quantity_denom 
+	 FROM accounts 
+	 LEFT JOIN splits 
+	 LEFT JOIN transactions 
+		WHERE (
+			accounts.parent_guid="09a92a76bc444418b9ab7d0d57e6cc18"
+			 AND splits.account_guid=accounts.guid
+			AND transactions.guid = splits.tx_guid
+	---		AND accounts.name = "GAZP"
+		)	
+	GROUP BY name 
+	ORDER BY accounts.name DESC
+	';
+		$res = array();
+		$results = $db->query($sql);
+		while ($row = $results->fetchArray()) {
+			$res[$row['name']] = $row['res_quantity_denom'];
+		}	
+		$db->close();
+		return $res;
+	}
+
+
+
+	// ПОЛУЧЕНО КУПОНОВ ОБЛИГАЦИИ ИЗ GNUCASH
+	function get_gnucash_bondization() {
+		$db = new SQLite3('/home/chockob/Documents/ledger/ledger-home.sqlite.gnucash'); //, SQLITE3_OPEN_READWRITE);
+		$sql = 'SELECT 
+		accounts.name,
+		SUM(splits.value_num * -1) AS sum_splits_value_num,
+		splits.value_denom
+		 FROM accounts 
+		 LEFT JOIN splits 
+			WHERE (
+				accounts.account_type="INCOME"
+				 AND parent_guid="40d63499a70445c1bdd2900e90fba7a7"
+				 AND splits.account_guid=accounts.guid	
+			)
+		GROUP BY accounts.name 
+		ORDER BY accounts.name DESC';
+		$res = array();
+		$results = $db->query($sql);
+		while ($row = $results->fetchArray()) {
+			$res[$row['name']] = $row['sum_splits_value_num'] / $row['value_denom'];
+		}	
+		$db->close();
+		return $res;
+	}
+
+
+
+	// КУПОННЫЙ КАЛЕНДАРЬ
+	// https://iss.moex.com/iss/securities/RU000A104UA4/bondization.json?iss.json=extended&iss.meta=off&iss.only=coupons&lang=ru&limit=unlimited
+	// bondization.json
+	function get_moex_bond_bondization_json ($bond_secid) {    	
+		
+		//$bond_secid = 'RU000A104UA4';
+		
+		$source_file = 'db/bondization/'.$bond_secid.'.json';	
+		if (file_exists($source_file)) {
+			//~ $people_json = file_get_contents($source_file);	
+			//echo "file<br>";
+
+			$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+			$dateEnd = date_create(date('d.m.Y',time()));
+			$dateEnd->setTime(24,0,0);
+			$diff = date_diff($dateStart,$dateEnd);
+		
+			if ($diff->format("%a") > 100 ) {					
+				$people_json = file_get_contents('https://iss.moex.com/iss/securities/'.$bond_secid.'/bondization.json?iss.json=extended&iss.meta=on&iss.only=coupons&lang=ru&limit=unlimited');	
+				file_put_contents($source_file, $people_json);
+			}
+		}
+		else {
+			$people_json = file_get_contents('https://iss.moex.com/iss/securities/'.$bond_secid.'/bondization.json?iss.json=extended&iss.meta=on&iss.only=coupons&lang=ru&limit=unlimited');	
+			file_put_contents($source_file, $people_json);
+		}
+		
+		$people_json = file_get_contents($source_file);	
+		$decoded_json = json_decode($people_json, true);	
+		
+		//print_r($decoded_json);
+		
+		$res = array();
+		
+		//$i=0;
+		foreach($decoded_json[1]['coupons'][1] as $key=>$val) {
+
+			$i = date('y.n',strtotime($val['coupondate']));
+					
+			$res[$i]['coupondate'] = $val['coupondate'];
+			$res[$i]['recorddate'] = $val['recorddate'];
+			$res[$i]['startdate'] = $val['startdate'];
+			$res[$i]['value_rub'] = $val['value_rub'];
+			$res[$i]['valueprc'] = $val['valueprc'];
+			
+			//$i++;
+		
+		}
+		
+		return $res;
+	}
+
+
+
+
 
 }
 
