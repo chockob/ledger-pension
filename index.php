@@ -69,6 +69,9 @@ ORDER BY accounts.name DESC
     
 
 
+var_export($_POST);
+
+
 //var_export(get_gnucash_bondization());
 
 //var_export(get_moex_bond_bondization_json('RU000A0ZYJT2'));
@@ -78,7 +81,21 @@ ORDER BY accounts.name DESC
 
 
 
+
 echo $Core->GetHtmlHead();
+
+
+if ($_POST['sudo'] == 'check_bondization') {
+
+	//~ echo 1111;
+	if (!empty($_POST['bond'])) {
+		$bond = filter_var ($_POST['bond']);
+		echo "<h3>$bond</h3>";
+		$CoreMOEX->get_moex_bond_bondization_json($bond, 1);
+	}
+
+}
+
 
 if ($_GET['do'] == 'shares') {
 
@@ -448,6 +465,10 @@ if ($_GET['do'] == 'shares') {
 	echo "</tr>";
 	echo "</table>";    
 }
+
+
+
+
 
 if ($_GET['do'] == 'bonds') {
 	/*-------------------------------------
@@ -930,7 +951,7 @@ if ($_GET['do'] == 'bonds') {
 				for ($i=0;  $i < $row['res_quantity_denom']; $i++)
 					$avg_couponpercent[] = $bond[$row['name']]['COUPONPERCENT'];
 		
-				$bondization = $Core->get_moex_bond_bondization_json($row['name']);
+				$bondization = $CoreMOEX->get_moex_bond_bondization_json($row['name']);
 
 				if (is_array($bondization)) {		
 					$matdate = date('y.n', strtotime($bond[$row['name']]['MATDATE']));
@@ -1000,6 +1021,18 @@ if ($_GET['do'] == 'bonds') {
 	echo '<tr><td colspan="2" style="text-align:right;">ROI (%)</td><td class="number">'.number_format($sum_gnucash_bondization / $total_investment * 100, 2, ',', '&nbsp;').'</td></tr>';
 	echo '<tr><td colspan="2" style="text-align:right;">Ставка купона &#956; (%)</td><td class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', '&nbsp;').'</td></tr>';
 	echo "</table>";
+	
+	
+	
+	
+	echo '<form action="./index.php?do=bonds" method="POST">';
+	echo '<p>График выплаты купонов</p>';
+	echo '<input type="text" name="bond" value="">';
+	echo '<input type="hidden" name="sudo" value="check_bondization">';
+	echo '<input type="submit" value="Обновить">';
+	echo '</form>';
+	
+	
 	
 	echo $body_cont;
 

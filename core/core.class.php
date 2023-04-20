@@ -283,57 +283,6 @@ class CoreLedgerPension {
 
 
 
-	// КУПОННЫЙ КАЛЕНДАРЬ
-	// https://iss.moex.com/iss/securities/RU000A104UA4/bondization.json?iss.json=extended&iss.meta=off&iss.only=coupons&lang=ru&limit=unlimited
-	// bondization.json
-	function get_moex_bond_bondization_json ($bond_secid) {    	
-		
-		//$bond_secid = 'RU000A104UA4';
-		
-		$source_file = 'db/bondization/'.$bond_secid.'.json';	
-		if (file_exists($source_file)) {
-			//~ $people_json = file_get_contents($source_file);	
-			//echo "file<br>";
-
-			$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
-			$dateEnd = date_create(date('d.m.Y',time()));
-			$dateEnd->setTime(24,0,0);
-			$diff = date_diff($dateStart,$dateEnd);
-		
-			if ($diff->format("%a") > 100 ) {					
-				$people_json = file_get_contents('https://iss.moex.com/iss/securities/'.$bond_secid.'/bondization.json?iss.json=extended&iss.meta=on&iss.only=coupons&lang=ru&limit=unlimited');	
-				file_put_contents($source_file, $people_json);
-			}
-		}
-		else {
-			$people_json = file_get_contents('https://iss.moex.com/iss/securities/'.$bond_secid.'/bondization.json?iss.json=extended&iss.meta=on&iss.only=coupons&lang=ru&limit=unlimited');	
-			file_put_contents($source_file, $people_json);
-		}
-		
-		$people_json = file_get_contents($source_file);	
-		$decoded_json = json_decode($people_json, true);	
-		
-		//print_r($decoded_json);
-		
-		$res = array();
-		
-		//$i=0;
-		foreach($decoded_json[1]['coupons'][1] as $key=>$val) {
-
-			$i = date('y.n',strtotime($val['coupondate']));
-					
-			$res[$i]['coupondate'] = $val['coupondate'];
-			$res[$i]['recorddate'] = $val['recorddate'];
-			$res[$i]['startdate'] = $val['startdate'];
-			$res[$i]['value_rub'] = $val['value_rub'];
-			$res[$i]['valueprc'] = $val['valueprc'];
-			
-			//$i++;
-		
-		}
-		
-		return $res;
-	}
 
 
 
