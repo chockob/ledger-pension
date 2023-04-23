@@ -8,17 +8,27 @@ include "./core/core.class.php";
 include "./core/raexpert.class.php";
 include "./core/acra.class.php";
 include "./core/moex.class.php";
+include "./core/tinkoff.class.php";
+
+
+$_CFG['COLON_MAX'] = 0.024;
+$_CFG['COLON_MIN'] = 0.021;
 
 $Core = new CoreLedgerPension();
 
 $CoreAcra = new CoreAcra();
 $CoreExpertRA = new CoreExpertRA();
 $CoreMOEX = new CoreMOEX();
+$CoreTinkoff = new CoreTinkoff();
 
 
 
 $logs = array();
 $time = time();
+
+
+
+
 
 
 
@@ -512,16 +522,22 @@ if ($_GET['do'] == 'bonds') {
 	$total_prevlegalcloseprice = 0;
 	//~ сумма по эмиттеру
 	$total_prevlegalcloseprice_emitter = array();
+	
+	$portfolio_bond_isin = array();
+	
 	$bond = array();
 	$results = $db->query($sql_q);
 	while ($row = $results->fetchArray()) {
 		$bond[$row['name']] = $CoreMOEX->get_moex_bond_json($row['name']);	
 		//~ echo $bond[$row['name']]['REGNUMBER'];
+		if (!empty($row['res_quantity_denom']))
+			array_push($portfolio_bond_isin, $row['name']);
+			
 		$total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] += $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
 		$total_prevlegalcloseprice += $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
 	}
 
-
+//~ print_r($portfolio_bond_isin);
 
 
 
@@ -758,14 +774,15 @@ if ($_GET['do'] == 'bonds') {
 				$body_cont .= '</td>';
 				
 				//~ доля (суммы) по эмитенту
-				if ( $emitter_colon >= 10)
-					$css_background = 'color3';
-				elseif ($emitter_colon >= 5)
-					$css_background = 'color1';
-				else
-					$css_background = 'color2';
+				//~ if ( $emitter_colon >= 10)
+					//~ $css_background = 'color3';
+				//~ elseif ($emitter_colon >= 5)
+					//~ $css_background = 'color1';
+				//~ else
+					//~ $css_background = 'color2';
 				
-				$body_cont .= '<td class="number '.$css_background.'">'
+				//~ $body_cont .= '<td class="number '.$css_background.'">'
+				$body_cont .= '<td class="number">'
 				.'<span class="z2">';
 				$body_cont .= ($togle_name != $bond[$row['name']]['REGNUMBER']) 
 				? $emitter_colon
@@ -794,7 +811,7 @@ if ($_GET['do'] == 'bonds') {
 					$portfolio_bond_colone = ($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
 					if ( $portfolio_bond_colone >= 5)
 						$css_background = 'color3';
-					elseif ( $portfolio_bond_colone <= 4 && $portfolio_bond_colone >= 3)
+					elseif ( $portfolio_bond_colone <= ($_CFG['COLON_MAX'] * 100) && $portfolio_bond_colone >= ($_CFG['COLON_MIN'] * 100))
 						$css_background = 'color1';
 					else
 						$css_background = 'color2';				
@@ -1020,6 +1037,7 @@ if ($_GET['do'] == 'bonds') {
 	echo '<tr><td colspan="2" style="text-align:right;">Купоны &sum; (₽)</td><td class="number">'.number_format($sum_gnucash_bondization, 2, ',', '&nbsp;').'</td></tr>';
 	echo '<tr><td colspan="2" style="text-align:right;">ROI (%)</td><td class="number">'.number_format($sum_gnucash_bondization / $total_investment * 100, 2, ',', '&nbsp;').'</td></tr>';
 	echo '<tr><td colspan="2" style="text-align:right;">Ставка купона &#956; (%)</td><td class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', '&nbsp;').'</td></tr>';
+	echo '<tr><td colspan="2" style="text-align:right;">'.($_CFG['COLON_MAX']*100).'% &Colon; (₽)</td><td class="number">'.number_format( $total_prevlegalcloseprice * ($_CFG['COLON_MAX']+1) * $_CFG['COLON_MAX'] , 2, ',', '&nbsp;').'</td></tr>';
 	echo "</table>";
 	
 	
@@ -1034,7 +1052,13 @@ if ($_GET['do'] == 'bonds') {
 	
 	
 	
+	
 	echo $body_cont;
+	
+	
+	//~ print_r($portfolio_bond_isin);
+	
+	echo $CoreTinkoff->get_tbru_news($portfolio_bond_isin);
 
 }
 
@@ -1049,6 +1073,8 @@ if ($_GET['do'] == 'bonds') {
 //var_export( $avg_couponvalue );
 
 
+
+	
 
 
 	echo $Core->GetHtmlFoot();
