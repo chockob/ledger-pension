@@ -75,11 +75,7 @@ ORDER BY accounts.name DESC
 
 
 
-
-    
-
-
-var_export($_POST);
+//~ var_export($_POST);
 
 
 //var_export(get_gnucash_bondization());
@@ -135,8 +131,9 @@ if ($_GET['do'] == 'shares') {
 	}
 	
 	//~ ПЛАНОВАЯ ДОЛЯ АКЦИИ В ПОРТФЕЛЕ
-	$SharesColone = $Core->GetSharesColone();
-	//~ var_export($SharesColone);
+	$PortfolioShares = $Core->GetPortfolioShares();
+	
+	var_export($PortfolioShares);
 	
 	
 	//~ ПОДСЧЕТ ЗНАЧЕНИЯ ИТОГО
@@ -162,7 +159,7 @@ if ($_GET['do'] == 'shares') {
 		$moex_shares[$row['name']] = $CoreMOEX->get_moex_shares_json($row['name']);
 		//~ var_export($moex_shares);
 	
-		if (!empty($SharesColone['colone'][$row['name']]))
+		if (!empty($PortfolioShares['colone'][$row['name']]))
 			$SharesColoneSum += $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'];
 		
 		if (!empty($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE']))	
@@ -219,8 +216,8 @@ if ($_GET['do'] == 'shares') {
 	<th><a title="Сумма полученных дивидендов">&sum;&nbsp;Див.&nbsp;(₽)</a></th>
 	<th><a title="Возвратность инвестиционных вложений. Сумма дивидендов / Базис * 100">ROI&nbsp;(%)</a></th>';
 
-	echo '<th><a title="Плановое значение пропорции акции в портфеле">'.array_sum($SharesColone['colone']).' &Colon;&nbsp;(%)</a>';
-	//~ echo ( array_sum($SharesColone['colone']) > 100) ? array_sum($SharesColone['colone']) : '';
+	echo '<th><a title="Плановое значение пропорции акции в портфеле">'.array_sum($PortfolioShares['colone']).' &Colon;&nbsp;(%)</a>';
+	//~ echo ( array_sum($PortfolioShares['colone']) > 100) ? array_sum($PortfolioShares['colone']) : '';
 	echo '</th>';
 	echo '<th><a title="Разница &Colon;(План - Значение)">&Delta;&nbsp;(пп)</a></th>
 
@@ -243,7 +240,7 @@ if ($_GET['do'] == 'shares') {
 		echo '<tr>';
 
 		$css_background_portfolio = '';
-		if (!empty($SharesColone['colone'][$row['name']]))
+		if (!empty($PortfolioShares['colone'][$row['name']]))
 			$css_background_portfolio = 'color1';
 		
 		
@@ -312,14 +309,14 @@ if ($_GET['do'] == 'shares') {
 					// доля портфеля
 					
 
-					if (!empty($SharesColone['colone'][$row['name']]))						
+					if (!empty($PortfolioShares['colone'][$row['name']]))						
 						$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$SharesColoneSum);
 					else
 						$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
 					
-					$colone_pp = $portfolio_shares_colone-$SharesColone['colone'][$row['name']];
+					$colone_pp = $portfolio_shares_colone-$PortfolioShares['colone'][$row['name']];
 					$css_background_colone = '';
-					if (!empty($SharesColone['colone'][$row['name']]))
+					if (!empty($PortfolioShares['colone'][$row['name']]))
 						if (  $colone_pp < 0.69 && $colone_pp > -0.69)
 							$css_background_colone = 'color1';
 						elseif (  $colone_pp < 0.99 && $colone_pp > -0.99)
@@ -405,12 +402,12 @@ if ($_GET['do'] == 'shares') {
 				//~ плановая доля
 			
 				echo '<td class="number">';
-				echo $SharesColone['colone'][$row['name']];
+				echo $PortfolioShares['colone'][$row['name']];
 				echo '</td>';
 				
 				//~ плановая доля (разница пп)
 				echo '<td class="number '.$css_background_colone.'">';
-				if (!empty($SharesColone['colone'][$row['name']])) {
+				if (!empty($PortfolioShares['colone'][$row['name']])) {
 					if ($colone_pp > 0)
 						echo '&plus;';
 					echo number_format($colone_pp,2,',','&nbspl');
@@ -601,6 +598,8 @@ if ($_GET['do'] == 'bonds') {
 	A(RU)
 	A-(RU)
 	">Рейтинг АКРА Экперт&nbsp;РА</th>
+	
+	<th colspan="2">Дюрация</th>
 	';
 
 
@@ -637,6 +636,9 @@ if ($_GET['do'] == 'bonds') {
 	<th><a title="Размер">₽</a></th>
 	<th><a title="Ставка">%</a></th>
 	<th><a title="Количество">шт</a></th>
+	<th>лет</th>
+	<th>дата</th>
+	
 ';
 
 	$starttime = microtime(true); // Top of page
@@ -809,12 +811,13 @@ if ($_GET['do'] == 'bonds') {
 									
 					// доля портфеля
 					$portfolio_bond_colone = ($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
-					if ( $portfolio_bond_colone >= 5)
+					
+					$css_background = '';				
+					if ( $portfolio_bond_colone > ($_CFG['COLON_MAX'] * 100))
 						$css_background = 'color3';
 					elseif ( $portfolio_bond_colone <= ($_CFG['COLON_MAX'] * 100) && $portfolio_bond_colone >= ($_CFG['COLON_MIN'] * 100))
 						$css_background = 'color1';
-					else
-						$css_background = 'color2';				
+
 
 					$body_cont .= '<td class="number '.$css_background.'">'
 					.'<span class="z4">'
@@ -964,6 +967,21 @@ if ($_GET['do'] == 'bonds') {
 				$raexport = $CoreExpertRA->get_raexpert_rate_bond($row['name']);
 				$body_cont .= $raexport.'</td>';
 				
+				
+				//~ дюрация
+				$bond_yieldscalculator = $CoreMOEX->get_bond_yieldscalculator($row['name']);
+				
+				$portfolio_bond_duration[] = $bond_yieldscalculator['calculated']['DURATIONYEAR'];
+				
+				$body_cont .= '<td>';
+				$body_cont .= $bond_yieldscalculator['calculated']['DURATIONYEAR'];
+				$body_cont .= '</td>';
+				$body_cont .= '<td>';
+				$body_cont .= date('d.m.Y', strtotime('+'.$bond_yieldscalculator['calculated']['DURATION'].' day') );
+				$body_cont .= '</td>';
+
+				
+				
 				//~ календарь выплаты купонов
 				for ($i=0;  $i < $row['res_quantity_denom']; $i++)
 					$avg_couponpercent[] = $bond[$row['name']]['COUPONPERCENT'];
@@ -1013,7 +1031,7 @@ if ($_GET['do'] == 'bonds') {
 	//~ echo "<tfoot>";
 
 
-	$body_cont .= '<tr><td colspan="21" style="text-align:right;">Погашение</br>Купоны</td>';
+	$body_cont .= '<tr><td colspan="23" style="text-align:right;">Погашение</br>Купоны</td>';
 
 	for ($i=0;$i<$bondization_period;$i++) {
 		if ($css_background == 'color1') 
@@ -1038,6 +1056,7 @@ if ($_GET['do'] == 'bonds') {
 	echo '<tr><td colspan="2" style="text-align:right;">ROI (%)</td><td class="number">'.number_format($sum_gnucash_bondization / $total_investment * 100, 2, ',', '&nbsp;').'</td></tr>';
 	echo '<tr><td colspan="2" style="text-align:right;">Ставка купона &#956; (%)</td><td class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', '&nbsp;').'</td></tr>';
 	echo '<tr><td colspan="2" style="text-align:right;">'.($_CFG['COLON_MAX']*100).'% &Colon; (₽)</td><td class="number">'.number_format( $total_prevlegalcloseprice * ($_CFG['COLON_MAX']+1) * $_CFG['COLON_MAX'] , 2, ',', '&nbsp;').'</td></tr>';
+	echo '<tr><td colspan="2" style="text-align:right;">Дюрация &#956; (г)</td><td class="number">'.number_format( array_sum($portfolio_bond_duration)/count($portfolio_bond_duration) , 4, ',', '&nbsp;').'</td></tr>';
 	echo "</table>";
 	
 	
@@ -1054,14 +1073,15 @@ if ($_GET['do'] == 'bonds') {
 	
 	
 	echo $body_cont;
-	
+
+
+
 	
 	//~ print_r($portfolio_bond_isin);
 	
 	echo $CoreTinkoff->get_tbru_news($portfolio_bond_isin);
 
 }
-
 
 
 

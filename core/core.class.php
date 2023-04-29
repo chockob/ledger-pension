@@ -62,10 +62,10 @@ class CoreLedgerPension {
 
 
 	// ПОЛУЧЕНИЕ ПЛАНОВОЙ ДОЛИ В ПОРТФЕЛЕ
-	function GetSharesColone() {  
+	function GetPortfolioShares() {  
 		//$bond_secid = 'RU000A104UA4';
 		
-		$source_file = 'cfg/shares_colone.json';		
+		$source_file = 'cfg/shares.json';		
 		//~ if (file_exists($source_file)) {
 
 			//~ $dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
@@ -88,10 +88,10 @@ class CoreLedgerPension {
 
 		$source_cont = file_get_contents($source_file);	
 		
-		//~ echo $source_cont;
+		//~ print_r($source_cont);
 			
 		$json_cont = json_decode($source_cont, true);		
-		//~ print_r($json_cont);
+		//~ print_r($json_cont['colone']);
 		
 		//~ $res = array();	
 		//~ if (!empty($json_cont)) {
@@ -257,7 +257,7 @@ class CoreLedgerPension {
 
 
 	// ПОЛУЧЕНО КУПОНОВ ОБЛИГАЦИИ ИЗ GNUCASH
-	function get_gnucash_bondization() {
+	public function get_gnucash_bondization() {
 		$db = new SQLite3('/home/chockob/Documents/ledger/ledger-home.sqlite.gnucash'); //, SQLITE3_OPEN_READWRITE);
 		$sql = 'SELECT 
 		accounts.name,
