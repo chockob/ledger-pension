@@ -143,8 +143,9 @@ if ($_GET['do'] == 'shares') {
 	FROM accounts 
 	LEFT JOIN splits 
 		WHERE (
-			parent_guid="59a27d1443e1446eaabf84150d88aa39"
-			 AND splits.account_guid=accounts.guid
+			parent_guid="59a27d1443e1446eaabf84150d88aa39" 
+			 AND splits.account_guid=accounts.guid 
+			 
 		)
 	GROUP BY name ';
 
@@ -179,6 +180,7 @@ if ($_GET['do'] == 'shares') {
 		WHERE (
 			parent_guid="59a27d1443e1446eaabf84150d88aa39"
 			 AND splits.account_guid=accounts.guid
+			 
 		)
 	GROUP BY name 
 	ORDER BY res_value_num DESC';
@@ -210,6 +212,9 @@ if ($_GET['do'] == 'shares') {
 	<th><a title="Официальная цена закрытия предыдущего дня, рассчитываемая по методике ФСФР ">Рын.&nbsp;(₽)</a></th>
 	<th><a title="Количество ценных бумаг в одном лоте и его стоимость">Лот&nbsp;(₽)</a></th>
 
+
+	<th><a title="Разница (&sum; Базис - &sum;Значение) ">&Delta;&nbsp;(&sum;)&nbsp;(₽)</a></th>
+
 	<th><a title="Разница (&#956;-цена - Цена)">&Delta;&nbsp;(₽)</a></th>
 	<th><a title="Разница (&#956;-цена - Цена)">&Delta;&nbsp;(пп)</a></th>
 
@@ -237,198 +242,209 @@ if ($_GET['do'] == 'shares') {
 		
 		//~ $moex_shares = get_moex_shares_json($row['name']);
 		
-		echo '<tr>';
-
-		$css_background_portfolio = '';
-		if (!empty($PortfolioShares['colone'][$row['name']]))
-			$css_background_portfolio = 'color1';
+		//~ if (!in_array($row['name'], array('TBRU'))) {
 		
-		
-		echo '<td class="'.$css_background_portfolio.'">'.$row['name'].'</td>';
-		echo '<td>'.str_replace(' ', '&nbsp;', $row['description']).'</td>';
-		
-				//echo '<td class="number">'.number_format($row['res_quantity_denom'], 0, ',', ' ').'</td>';
+			echo '<tr>';
 
-				
-				// базис (инвестировано)			
-				if ($row['res_quantity_denom'] > 0) {				
-					$total_gnucash_dividendization += $gnucash_dividendization[$row['name']];
-					echo '<td class="number">';
-					echo number_format($row['res_value_num'], 2, ',', '&nbsp;');
-					echo '</td>';
-					// доля портфеля
-					echo '<td class="number">';
-					echo ($row['res_quantity_denom'] > 0) ? number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;') : '';				
-					echo '</td>';
-				}
-				else
-					echo '<td class="number"></td><td class="number"></td>';
-
-				// количество
-				echo '<td class="number">';			
-				if ($row['res_quantity_denom'] > 0) {
-					if ($row['res_quantity_denom'] <1000)
-						echo number_format($row['res_quantity_denom'], 0, ',', '&nbsp;');
-					else
-						echo number_format($row['res_quantity_denom']/1000, 0, ',', '&nbsp;').'k';
-				}
-				echo '</td>';
-
-				//Портфель μ-цена акции, ₽				
-				echo '<td class="number">';
-				if ($row['res_quantity_denom'] > 0) {
-					$shares_avg = $row['res_value_num'] / $row['res_quantity_denom'];
-					
-					echo number_format($shares_avg  , $moex_shares[$row['name']]['DECIMALS'], ',', ' ');
-					
-				}
-				echo '</td>';
-				
-				//последний день покупки
-				echo '<td class="number">';		
-				if ($row['res_quantity_denom'] > 0) {
-					$daybuy = $Core->get_gnucash_last_daybuy_shares($row['name']);
-					if (!empty($daybuy)) {
-						$dateStart = date_create($daybuy);
-						$dateEnd = date_create(date('d.m.Y',$time));
-						$dateEnd->setTime(24,0,0);
-						$diff = date_diff($dateStart,$dateEnd);
-						echo $diff->format("%a");
-						//~ echo $diff->format("%m/%d");
-					}
-				}			
-				echo '</td>';			
-				
-				//Значение (Портфель рыночная стоимость, ₽)
-				if ($row['res_quantity_denom'] > 0) {							
-					echo '<td class="number">';
-					echo number_format( $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'] , 2, ',', '&nbsp;');
-					echo '</td>';
-
-
-					// доля портфеля
-					
-
-					if (!empty($PortfolioShares['colone'][$row['name']]))						
-						$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$SharesColoneSum);
-					else
-						$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
-					
-					$colone_pp = $portfolio_shares_colone-$PortfolioShares['colone'][$row['name']];
-					$css_background_colone = '';
-					if (!empty($PortfolioShares['colone'][$row['name']]))
-						if (  $colone_pp < 0.69 && $colone_pp > -0.69)
-							$css_background_colone = 'color1';
-						elseif (  $colone_pp < 0.99 && $colone_pp > -0.99)
-							$css_background_colone = 'color2';
-						else
-							$css_background_colone = 'color3';
-							
-					
-					echo '<td class="number '.$css_background_colone.'">';
-					echo ($row['res_quantity_denom'] > 0) 
-					? number_format($portfolio_shares_colone, 2, ',', '&nbsp;') 
-					: '';
-					echo '</td>';
-				}
-				else
-					echo '<td class="number"></td><td class="number"></td>';
-				
-					
-				
-					
-					//цена пред.дня			
-					echo '<td class="number">'
-					.number_format($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], $moex_shares[$row['name']]['DECIMALS'], ',', ' ')
-					.'</td>';
-					
-					//стоимость лота	
-					echo '<td class="number">'
-					.number_format($moex_shares[$row['name']]['LOTSIZE'] * $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ')
-					.'</td>';
-					//~ //лотность	
-					//~ echo '<td class="number">';			
-					//~ if ($moex_shares[$row['name']]['LOTSIZE'] > 1000)
-						//~ echo number_format($moex_shares[$row['name']]['LOTSIZE']/1000, 0, ',', '&nbsp;').'k';
-					//~ else
-						//~ echo number_format($moex_shares[$row['name']]['LOTSIZE'], 0, ',', '&nbsp;');
-					//~ echo '</td>';
-
-				if ($row['res_quantity_denom'] > 0) {
-					
-					
-					$shares_profit = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] - $shares_avg);
-					$shares_profit_pp = $shares_profit *100 / $shares_avg;
-					$avg_pm = '';
-					$css_background = 'color3';
-					if ( $shares_profit_pp > -10 && $shares_profit_pp < 0 ) {
-						$css_background = 'color2';
-					}
-					elseif ( $shares_profit_pp >= 0  ) {
-						$css_background = 'color1';
-					}				
-					//~ elseif (  ) {
-						//~ $avg_pm = '+';
-						
-					//~ }
-					
-					// Портфель Δ-цена акции, ₽		
-					echo '<td class="number '.$css_background.'">'
-					.$avg_pm.number_format($shares_profit, $moex_shares[$row['name']]['DECIMALS'], ',', '&nbsp;')
-					.'</td>'
-					// Портфель Δ-цена акции, %	
-					.'<td class="number '.$css_background.'">'
-					.$avg_pm.number_format($shares_profit_pp, 1, ',', ' ')
-					.'</td>';
-				}
-				else {				
-					echo '<td>-</td>';
-					echo '<td>-</td>';
-				}									
-				//Портфель сумма дивидендов, ₽
-				echo '<td class="number" >';			
-				echo ($gnucash_dividendization[$row['name']] > 0) ? number_format($gnucash_dividendization[$row['name']], 2, ',', ' ') : '-';						
-				echo '</td>';			
-				
-				// ROI
-				echo '<td class="number">';
-				if ($row['res_quantity_denom'] > 0) {
-					if (!empty($gnucash_dividendization[$row['name']]) & !empty($row['res_value_num'])) {
-						echo number_format($gnucash_dividendization[$row['name']] /  $row['res_value_num'] *100, 2, ',', ' ');
-					}
-				}
-				echo '</td>';
-				
-				//~ плановая доля
+			$css_background_portfolio = '';
+			if (!empty($PortfolioShares['colone'][$row['name']]))
+				$css_background_portfolio = 'color1';
 			
+			
+			echo '<td class="'.$css_background_portfolio.'">'.$row['name'].'</td>';
+			echo '<td>'.str_replace(' ', '&nbsp;', $row['description']).'</td>';
+		
+			//echo '<td class="number">'.number_format($row['res_quantity_denom'], 0, ',', ' ').'</td>';
+
+			
+			// базис (инвестировано)			
+			if ($row['res_quantity_denom'] > 0) {				
+				$total_gnucash_dividendization += $gnucash_dividendization[$row['name']];
 				echo '<td class="number">';
-				echo $PortfolioShares['colone'][$row['name']];
+				echo number_format($row['res_value_num'], 2, ',', '&nbsp;');
 				echo '</td>';
+				// доля портфеля
+				echo '<td class="number">';
+				echo ($row['res_quantity_denom'] > 0) ? number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;') : '';				
+				echo '</td>';
+			}
+			else
+				echo '<td class="number"></td><td class="number"></td>';
+
+			// количество
+			echo '<td class="number">';			
+			if ($row['res_quantity_denom'] > 0) {
+				if ($row['res_quantity_denom'] <1000)
+					echo number_format($row['res_quantity_denom'], 0, ',', '&nbsp;');
+				else
+					echo number_format($row['res_quantity_denom']/1000, 0, ',', '&nbsp;').'k';
+			}
+			echo '</td>';
+
+			//Портфель μ-цена акции, ₽				
+			echo '<td class="number">';
+			if ($row['res_quantity_denom'] > 0) {
+				$shares_avg = $row['res_value_num'] / $row['res_quantity_denom'];
 				
-				//~ плановая доля (разница пп)
-				echo '<td class="number '.$css_background_colone.'">';
-				if (!empty($PortfolioShares['colone'][$row['name']])) {
-					if ($colone_pp > 0)
-						echo '&plus;';
-					echo number_format($colone_pp,2,',','&nbspl');
+				echo number_format($shares_avg  , $moex_shares[$row['name']]['DECIMALS'], ',', ' ');
+				
+			}
+			echo '</td>';
+			
+			//последний день покупки
+			echo '<td class="number">';		
+			if ($row['res_quantity_denom'] > 0) {
+				$daybuy = $Core->get_gnucash_last_daybuy_shares($row['name']);
+				if (!empty($daybuy)) {
+					$dateStart = date_create($daybuy);
+					$dateEnd = date_create(date('d.m.Y',$time));
+					$dateEnd->setTime(24,0,0);
+					$diff = date_diff($dateStart,$dateEnd);
+					echo $diff->format("%a");
+					//~ echo $diff->format("%m/%d");
 				}
+			}			
+			echo '</td>';			
+			
+			//Значение (Портфель рыночная стоимость, ₽)
+			if ($row['res_quantity_denom'] > 0) {							
+				echo '<td class="number">';
+				echo number_format( $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom'] , 2, ',', '&nbsp;');
 				echo '</td>';
-				
+
+
+				// доля портфеля
 				
 
-		
+				if (!empty($PortfolioShares['colone'][$row['name']]))						
+					$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$SharesColoneSum);
+				else
+					$portfolio_shares_colone = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
 				
-				//~ //стоимость лота	
-				//~ echo '<td class="number">'
-				//~ .number_format($moex_shares[$row['name']]['LOTSIZE'] * $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ')
-				//~ .'</td>';
+				$colone_pp = $portfolio_shares_colone-$PortfolioShares['colone'][$row['name']];
+				$css_background_colone = '';
+				if (!empty($PortfolioShares['colone'][$row['name']]))
+					if (  $colone_pp < 0.69 && $colone_pp > -0.69)
+						$css_background_colone = 'color1';
+					elseif (  $colone_pp < 0.99 && $colone_pp > -0.99)
+						$css_background_colone = 'color2';
+					else
+						$css_background_colone = 'color3';
+						
+				
+				echo '<td class="number '.$css_background_colone.'">';
+				echo ($row['res_quantity_denom'] > 0) 
+				? number_format($portfolio_shares_colone, 2, ',', '&nbsp;') 
+				: '';
+				echo '</td>';
+			}
+			else
+				echo '<td class="number"></td><td class="number"></td>';
+			
+				
+			
+				
+				//цена пред.дня			
+				echo '<td class="number">'
+				.number_format($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], $moex_shares[$row['name']]['DECIMALS'], ',', '&nbsp;')
+				.'</td>';
+				
+				//стоимость лота	
+				echo '<td class="number">'
+				.number_format($moex_shares[$row['name']]['LOTSIZE'] * $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', '&nbsp;')
+				.'</td>';
 				//~ //лотность	
-				//~ echo '<td class="number">'
-				//~ .number_format($moex_shares[$row['name']]['LOTSIZE'], 0, ',', '&nbsp;').'</span>'
-				//~ .'</td>';
+				//~ echo '<td class="number">';			
+				//~ if ($moex_shares[$row['name']]['LOTSIZE'] > 1000)
+					//~ echo number_format($moex_shares[$row['name']]['LOTSIZE']/1000, 0, ',', '&nbsp;').'k';
+				//~ else
+					//~ echo number_format($moex_shares[$row['name']]['LOTSIZE'], 0, ',', '&nbsp;');
+				//~ echo '</td>';
+
+			if ($row['res_quantity_denom'] > 0) {
+				
+				
+				$shares_profit = ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] - $shares_avg);
+				$shares_profit_pp = $shares_profit *100 / $shares_avg;
+				$avg_pm = '';
+				$css_background = 'color3';
+				if ( $shares_profit_pp > -10 && $shares_profit_pp < 0 ) {
+					$css_background = 'color2';
+				}
+				elseif ( $shares_profit_pp >= 0  ) {
+					$css_background = 'color1';
+				}				
+				//~ elseif (  ) {
+					//~ $avg_pm = '+';
+					
+				//~ }
+				
+				//~ разница Базис - Значение
+				echo '<td class="number '.$css_background.'">';
+				echo number_format( ($moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'] * $row['res_quantity_denom']) - $row['res_value_num'], 2, ',', '&nbsp;');
+				//~ echo number_format($shares_profit, $moex_shares[$row['name']]['DECIMALS'], ',', '&nbsp;')
+				echo '</td>';
+				
+				
+				// Портфель Δ-цена акции, ₽		
+				echo '<td class="number '.$css_background.'">'
+				.$avg_pm.number_format($shares_profit, $moex_shares[$row['name']]['DECIMALS'], ',', '&nbsp;')
+				.'</td>'
+				// Портфель Δ-цена акции, %	
+				.'<td class="number '.$css_background.'">'
+				.$avg_pm.number_format($shares_profit_pp, 1, ',', ' ')
+				.'</td>';
+			}
+			else {				
+				echo '<td>-</td>';
+				echo '<td>-</td>';
+				echo '<td>-</td>';
+			}									
+			//Портфель сумма дивидендов, ₽
+			echo '<td class="number" >';			
+			echo ($gnucash_dividendization[$row['name']] > 0) ? number_format($gnucash_dividendization[$row['name']], 2, ',', ' ') : '-';						
+			echo '</td>';			
+			
+			// ROI
+			echo '<td class="number">';
+			if ($row['res_quantity_denom'] > 0) {
+				if (!empty($gnucash_dividendization[$row['name']]) & !empty($row['res_value_num'])) {
+					echo number_format($gnucash_dividendization[$row['name']] /  $row['res_value_num'] *100, 2, ',', ' ');
+				}
+			}
+			echo '</td>';
+			
+			//~ плановая доля
+		
+			echo '<td class="number">';
+			echo $PortfolioShares['colone'][$row['name']];
+			echo '</td>';
+			
+			//~ плановая доля (разница пп)
+			echo '<td class="number '.$css_background_colone.'">';
+			if (!empty($PortfolioShares['colone'][$row['name']])) {
+				if ($colone_pp > 0)
+					echo '&plus;';
+				echo number_format($colone_pp,2,',','&nbspl');
+			}
+			echo '</td>';
+			
+			
+
+	
+			
+			//~ //стоимость лота	
+			//~ echo '<td class="number">'
+			//~ .number_format($moex_shares[$row['name']]['LOTSIZE'] * $moex_shares[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ')
+			//~ .'</td>';
+			//~ //лотность	
+			//~ echo '<td class="number">'
+			//~ .number_format($moex_shares[$row['name']]['LOTSIZE'], 0, ',', '&nbsp;').'</span>'
+			//~ .'</td>';
 		
 		
-		echo '</tr>';	
+			echo '</tr>';	
+		//~ }
 	}
 	echo "</tbody>";
 	echo "</table>";  

@@ -61,6 +61,10 @@ class CoreMOEX {
 	// ПОЛУЧЕНИЕ СВЕДЕНИЙ ОБ АКЦИИ НА МОСБИРЖА
 	function get_moex_shares_json($shares_secid) {  
 		//$bond_secid = 'RU000A104UA4';
+
+		$BOARDID = 'TQBR';		
+		if ($shares_secid == 'TBRU')
+			$BOARDID = 'TQTF';		
 		
 		$source_file = 'db/shares/'.$shares_secid.'.json';		
 		if (file_exists($source_file)) {
@@ -71,13 +75,13 @@ class CoreMOEX {
 			$diff = date_diff($dateStart,$dateEnd);
 		
 			if ($diff->format("%a") > 1 ) {
-				$BOARDID = 'TQBR';		
+				
 				$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
 				file_put_contents($source_file, $people_json);
 			}		
 		}
 		else {
-			$BOARDID = 'TQBR';		
+			
 			$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/shares/boards/'.$BOARDID.'/securities/'.$shares_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');		
 			file_put_contents($source_file, $people_json);
 		}
