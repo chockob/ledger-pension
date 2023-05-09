@@ -33,7 +33,9 @@ $time = time();
 
 
 
-   
+//~ echo $CoreMOEX->get_moex_moexbc(); 
+
+//~ exit;   
 
 
 
@@ -486,7 +488,12 @@ if ($_GET['do'] == 'shares') {
 	//echo '<th class="number">'.number_format( (array_sum($avg_couponpercent) / count($avg_couponpercent)), 2, ',', ' ').'</th>';
 
 	echo "</tr>";
-	echo "</table>";    
+	echo "</table>";   
+	
+
+	echo $CoreMOEX->get_moex_moexbc(); 	
+	
+	
 }
 
 

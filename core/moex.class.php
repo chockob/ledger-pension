@@ -2,7 +2,130 @@
 
 class CoreMOEX {
 
-	public function __construct() { }
+
+
+	// ПОЛУЧЕНИЕ состава индекса MOEXBC (голубые фишки)
+	function get_moex_moexbc() {  
+		//$bond_secid = 'RU000A104UA4';
+		
+		$result = '';
+		$source_file = 'db/moex_moexbc.json';	
+		
+		$url = 'https://iss.moex.com/iss/statistics/engines/stock/markets/index/analytics/MOEXBC.jsonp?iss.meta=off&iss.json=extended&start=0&limit=100&lang=ru&iss.meta=off&iss.json=extended&lang=ru';
+		
+		
+
+		
+		//~ print_r($portfolio_bond_isin);
+			
+		if (file_exists($source_file)) {
+
+			$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+			$dateEnd = date_create(date('d.m.Y',time()));
+			$dateEnd->setTime(24,0,0);
+			$diff = date_diff($dateStart,$dateEnd);
+		
+			$hours = $diff->h;
+			$hours = $hours + ($diff->days*24);
+			//~ echo $hours;
+			
+			//~ if ($diff->format("%h") > 12 ) {
+			if ($hours > 24 ) {
+					
+				$source_json = file_get_contents($url);		
+				file_put_contents($source_file, $source_json);
+			}		
+		}
+		else {
+			
+			$source_json = file_get_contents($url);
+			
+			file_put_contents($source_file, $source_json);
+		}
+		
+		//~ echo $source_file;
+			
+		$content_json = file_get_contents($source_file);
+
+		//~ echo $content_json;
+
+		$decoded_json = json_decode($content_json, true);
+		
+		//~ echo "<pre>";
+		//~ echo $decoded_json[1]['analytics'][1]['shortnames'] ;
+		//~ foreach ($decoded_json['analytics'] as $item) {
+			//~ print_r($item['shortnames'] );
+		//~ }
+		//~ var_export($decoded_json);
+		//~ echo "</pre>";
+		
+
+		//~ echo $decoded_json['payload']['news'][0]['announce'];   //<th>Размер купона</th>	
+		
+		$result .= '<table style="width:10%">';
+		$result .= '<caption><a href="https://www.moex.com/ru/index/MOEXBC/constituents/">MOEXBC</a><caption>';
+		$result .= '<tr><th>Инструмент</th><th>Вес (%)</th></tr>';
+		
+		$result_a = array();
+		
+		usort( $decoded_json[1]['analytics'] , function($a, $b) { //Sort the array using a user defined function
+			return $a['weight'] > $b['weight'] ? -1 : 1; //Compare the scores
+			
+			//~ return $a['weight'] <=> $b['weight'];
+		});		
+		
+		foreach ($decoded_json[1]['analytics'] as $item) {
+			//~ if (!empty($item['trade_groups'])) {
+				
+				
+				$result .= '<tr><td>';
+				$result .= '<a hre="https://www.moex.com/ru/issue.aspx?code='.$item['ticker'].'">'.$item['shortnames'].'</a>';
+				$result .= '</td><td>';
+				$result .= $item['weight'];
+				$result .= '</td></tr>';
+				
+				$result_a[$item['weight']] = $result_tmp;
+				
+				
+				
+				//~ foreach ( $item['trade_groups'] as $item_trade) {
+					
+					//~ $css_background = '';
+					
+					//~ if (in_array(trim($item_trade['ticker']['ticker']), $portfolio_bond_isin))
+					
+						//~ $css_background = 'color1';
+					
+					//~ $result .= '<tr><td class="'.$css_background.'">'.$item_trade['ticker']['ticker'];
+					//~ $result .= '</td><td class="'.$css_background.'" ><a href="https://www.moex.com/ru/issue.aspx?code='.trim($item_trade['ticker']['ticker']).'" >'.$item_trade['ticker']['name'].'</a>';
+					
+					//~ $result .= '</td><td class="number '.$css_background.'">';
+					//~ if ($item_trade['action'] == 'buy')
+						//~ $result .= "&plus;";
+					//~ elseif ($item_trade['action'] == 'sell')
+						//~ $result .= "&minus;";
+					//~ $result .= $item_trade['quantity'];
+					//~ $result .= '</td><td class="number '.$css_background.'">'.$item_trade['ticker']['price'];
+					//~ $result .= '</td><td class="'.$css_background.'"> <s>'.$item_trade['part_before'].'</s> &roarr; '.$item_trade['part_after'];
+					//~ $result .= '</td><td class="number '.$css_background.'">'.number_format(($item_trade['sum'] ), 2, ',', '&nbsp;').'';
+					//~ $result .= '</td>';
+					//~ $result .= '<td>';
+
+					//~ $bond_yieldscalculator = $this->get_bond_yieldscalculator($item_trade['ticker']['ticker']);
+					//~ $result .=  $bond_yieldscalculator['calculated']['DURATIONYEAR'];
+					$result .= '</td></tr>';
+				//~ }
+			//~ }
+		}
+		
+		//~ krsort($result_a);
+		
+		//~ $result .= implode($result_a);
+		$result .= '</table>';
+		return $result;
+	}	
+
+	
 
 	// КУПОННЫЙ КАЛЕНДАРЬ
 	// https://iss.moex.com/iss/securities/RU000A104UA4/bondization.json?iss.json=extended&iss.meta=off&iss.only=coupons&lang=ru&limit=unlimited
