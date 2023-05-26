@@ -115,6 +115,8 @@ class CoreLedgerPension {
 			
 		$source_file = 'db/emitter/'.$emitter_id.'.json';	
 		
+		$url = 'https://www.cbr.ru/registries/rcb/ecb/?UniDbQuery.Posted=True&UniDbQuery.SPhrase='.$emitter_id.'&UniDbQuery.SearchType=4';
+		
 		$html = '';
 		$result = 'EMPTY';
 		if (!empty($emitter_id)) {	
@@ -126,14 +128,14 @@ class CoreLedgerPension {
 
 				$diff = date_diff($dateStart,$dateEnd);
 				if ( $diff->format("%a") > 10 ) {
-					$html = file_get_contents('https://www.cbr.ru/registries/rcb/ecb/?UniDbQuery.Posted=True&UniDbQuery.SPhrase='.$emitter_id.'&UniDbQuery.SearchType=4');	
+					$html = file_get_contents($url);	
 					//~ file_put_contents($source_file, $html);
 				}
 				else
 					$result = file_get_contents($source_file);			
 			}	
 			else {				
-				$html = file_get_contents('https://www.cbr.ru/registries/rcb/ecb/?UniDbQuery.Posted=True&UniDbQuery.SPhrase='.$emitter_id.'&UniDbQuery.SearchType=4');	
+				$html = file_get_contents($url);	
 				//~ file_put_contents($source_file, $html);
 			}
 		}

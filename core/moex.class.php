@@ -287,7 +287,9 @@ class CoreMOEX {
 		$res['LISTLEVEL'] 			= $decoded_json['securities']['data'][0][34];  //<th>Уровень листинга</th>	
 		$res['FACEVALUE'] 			= $decoded_json['securities']['data'][0][10];   //<th>Номинальная стоимость</th>
 		$res['COUPONPERIOD'] 	= $decoded_json['securities']['data'][0][15];  //<th>Перио-дичность выплаты купона в год</th>
-		//~ $res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][36];   //<th>Ставка купона, %</th>	
+		
+		$res['BOARDNAME'] 		= $decoded_json['securities']['data'][0][19];   //<th>Ставка купона, %</th>	
+		
 		$res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][35];   //<th>Ставка купона, %</th>	
 		$res['COUPONVALUE'] 		= $decoded_json['securities']['data'][0][5];   //<th>Размер купона</th>	
 		

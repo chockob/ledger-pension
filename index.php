@@ -241,6 +241,7 @@ if ($_GET['do'] == 'shares') {
 
 	$results = $db->query($sql_q);
 	while ($row = $results->fetchArray()) {
+		if ($row['res_quantity_denom'] > 0) {
 		
 		//~ $moex_shares = get_moex_shares_json($row['name']);
 		
@@ -446,7 +447,7 @@ if ($_GET['do'] == 'shares') {
 		
 		
 			echo '</tr>';	
-		//~ }
+		}
 	}
 	echo "</tbody>";
 	echo "</table>";  
@@ -603,14 +604,17 @@ if ($_GET['do'] == 'bonds') {
 	<th rowspan="2">Наименование</th>
 	<th colspan="4" title="Базис. Сумма инвестированных средств в облигации, (руб / пропорция от итоговой суммы)" >Базис</th>
 
-
-	<th colspan="6" title="Рыночная стоимость облигации">Значение</th>
+<!--
+	<th colspan="2" title="Доля эмитента в портфеле">Эмитент</th>
+-->	
+	<th colspan="4" title="Рыночная стоимость облигации">Значение</th>
 	<th colspan="3">Результаты</th>
 	<th colspan="4" title="Размер купона 
 	/ Ставка купона 
 	/ Период выплаты (количество в год) купонов">Купоны</th>
 
-	<th rowspan="2">Дата погашения</th>
+	<th rowspan="2">Дата погашения
+	(оферты)</th>
 	<th rowspan="2" title="AAA(RU)
 
 	AA+(RU)
@@ -627,9 +631,9 @@ if ($_GET['do'] == 'bonds') {
 
 
 		$year_today = date("Y");
-		$body_cont .= '<th colspan="'.(13-date("n")).'" class="color1"  >'.$year_today."</th>";
-		$body_cont .= '<th colspan="12" class="color2"  >'.($year_today+1)."</th>";
-		$body_cont .= '<th colspan="2" class="color3"  >'.($year_today+2)."</th>";
+		$body_cont .= '<th colspan="'.(13-date("n")).'" class="color1" style="font-size:80%" >'.$year_today."</th>";
+		$body_cont .= '<th colspan="12" class="color2" style="font-size:80%"  >'.($year_today+1)."</th>";
+		$body_cont .= '<th colspan="4" class="color3" style="font-size:80%" >'.($year_today+2)."</th>";
 
 
 
@@ -644,15 +648,17 @@ if ($_GET['do'] == 'bonds') {
 	<th class="btn_tx1" value="шт" content="b3" title="Портфель количество облигации">шт</th>
 	<th class="btn_tx1" value="&#956;&nbsp;(%)" content="b4" title="Средняя цена (Базис / Кол.)">&#956;&nbsp;(%)</th>
 
-	<th class="btn_tx1" value="&sum;&nbsp;Эм.&nbsp;(₽)" content="z1" title="Значение (сумма) эмитента в портфеля">&sum;&nbsp;Эм.&nbsp;(₽)</th>   
+<!--
+	<th class="btn_tx1" value="&sum;&nbsp;Эм.&nbsp;(₽)" content="z1" title="Значение (сумма) эмитента в портфеля">&sum;&nbsp;&nbsp;(₽)</th>   
 	<th class="btn_tx1" value="&Colon;&nbsp;(%)" content="z2"  title="Значение (доля) эмитента в портфеля">&Colon;&nbsp;(%)</th>
-	<th class="btn_tx1" value="&sum;&nbsp;Об.&nbsp;(₽)" content="z3" title="Значение (сумма) облигации в портфеля">&sum;&nbsp;Об.&nbsp;(₽)</th>   
+-->
+	<th class="btn_tx1" value="&sum;&nbsp;Об.&nbsp;(₽)" content="z3" title="Значение (сумма) облигации в портфеля">&sum;&nbsp;&nbsp;(₽)</th>   
 	<th class="btn_tx1" value="&Colon;&nbsp;(%)" content="z4" title="Значение (доля) облигации в портфеля">&Colon;&nbsp;(%)</th>
-	<th class="btn_tx1" value="Ном.&nbsp;(₽)" content="z5"  title="Номинальная стоимость облигации">Ном.&nbsp;(₽)</th>
+	<th class="btn_tx1" value="Ном.&nbsp;(₽)" content="z5"  title="Номинальная стоимость облигации (в тысячах)">Н.&nbsp;(₽)</th>
 	<th class="btn_tx1" value="Рын.&nbsp;(%)" content="z6"  title="Рыночная стоимость">Рын.&nbsp;(%)</th>
 
 	<th class="btn_tx1" value="&Delta;&nbsp;(пп)" content="r1" title="Разница цен (&#956; (%) - Рын. (%))">&Delta;&nbsp;(пп)</th>
-	<th class="btn_tx1" value="&sum;&nbsp;Куп.&nbsp;(₽)" content="r2" title="Сумма полученных купонов">&sum;&nbsp;Куп.&nbsp;(₽)</th>
+	<th class="btn_tx1" value="&sum;&nbsp;Куп.&nbsp;(₽)" content="r2" title="Сумма полученных купонов">&sum;&nbsp;К.&nbsp;(₽)</th>
 	<th class="btn_tx1" value="ROI&nbsp;(%)" content="r3" title="возвратность инвестиционных вложений.Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI&nbsp;(%)</th>
 
 	<th><a title="Накомпленный купонный доход">НКД&nbsp;(₽)</a></th>
@@ -670,24 +676,19 @@ if ($_GET['do'] == 'bonds') {
 	$css_background = '';
 	$y_toggle ='';
 	$m_toggle ='';
-	for ($i=0;$i<$bondization_period;$i++)	{
-		if ( $i > 11)
-			$css_background = 'color3';
-		elseif ( $i > 5)
+	for ($i=0; $i<$bondization_period; $i++)	{
+		$css_background = 'color1';
+		if ( $i >= 12)
 			$css_background = 'color2';
-		else
-			$css_background = 'color1';
-		//~ .date("y.n", strtotime("+$i month", $time))
-		//~ $year = date("Y", strtotime("+$i month", $time));
+		//~ elseif ( $i >= 12)
+			//~ $css_background = 'color2';
+		//~ else
+			
+			
 		$year = date("Y-m-d", strtotime("+$i month"));
-		//~ $month = date("n", strtotime("+$i month", $time));
 		$month = date("n", strtotime("+$i month"));
 		$th_content = '';
 		$th_style = '';
-		//~ if ($y_toggle != $year) {
-			//~ $th_content .= $year;
-			//~ $y_toggle = $year;
-		//~ }
 		
 		if ($m_toggle != $month) {		
 			$th_content .= ''.$month;
@@ -697,7 +698,7 @@ if ($_GET['do'] == 'bonds') {
 		}	
 		
 		
-		$body_cont .= '<th class="'.$css_background.'" style="'.$th_style.'" >';	
+		$body_cont .= '<th class="'.$css_background.'" style="'.$th_style.'">';	
 		$body_cont .= $th_content;
 		//~ echo '</br>'.$year.'&nbsp;'.$month;
 		//~ echo '</br>'.$i;
@@ -729,10 +730,8 @@ if ($_GET['do'] == 'bonds') {
 			if ($row['res_quantity_denom'] > 0) {
 				$i_bond++;
 				$body_cont .= '<tr>';		
-				//~ .$i_bond
-				$body_cont .= '<td>'
-				.' '.$row['name']
-				.'</td>';
+				//~ код инструмента ISIN
+				$body_cont .= '<td>'.$row['name'].'</td>';
 				
 				//$bond = '';
 				//$bond = get_moex_bond_json($row['name']);
@@ -742,78 +741,76 @@ if ($_GET['do'] == 'bonds') {
 				
 				
 				
-				
+				//~ наименование инструмента
 				$body_cont .= '<td style="white-space: nowrap;" >';			
 				$body_cont .= '<a href="https://www.moex.com/ru/issue.aspx?code='.$row['name'].'">';
 				if (preg_match("/RU[a-zA-Z0-9]{10}/", $row['name']) ) {
-					if ($togle_name != $bond[$row['name']]['REGNUMBER'])
-						$body_cont .= ''.$Core->get_emitter_name($bond[$row['name']]['REGNUMBER'] );
-					else
-						$body_cont .= '&#12291;';
+					//~ if ($togle_name != $bond[$row['name']]['REGNUMBER'])
+						//~ $body_cont .= ''.$Core->get_emitter_name($bond[$row['name']]['REGNUMBER'] );
+						
+						$body_cont .= ''.$bond[$row['name']]['BOARDNAME'];	
+						
+					//~ else
+						//~ $body_cont .= '&#12291;';
 				}
 				else
 					$body_cont .= $bond[$row['name']]['NAME'];
 				$body_cont .= '</a>';			
 				$body_cont .= '</td>';
 				
-				//Базис,₽ / ∷			
-				$body_cont .= '<td class="number" >'
-				.'<span class="b1">'
-				.number_format($row['res_value_num'], 2, ',', '&nbsp;')
-				.'</span>'
-				.'</td>';
+				//Базис, сумма ₽ / ∷			
+				$body_cont .= '<td class="number" >'.'<span class="b1">';
+				$body_cont .= ( $row['res_value_num'] > 0 )
+				? number_format($row['res_value_num'], 2, ',', '&nbsp;')
+				: '&nbsp;';
+				
+				$body_cont .= '</span></td>';
 
 				// Базис доля портфеля
 				$body_cont .= '<td class="number" >'			
-				.'<span class="b2">'
-				.number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;')
-				.'</span>'
-				.'</td>';
+				.'<span class="b2">';
+				$body_cont .= ( $row['res_value_num'] > 0 )
+				? number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;')
+				: '&nbsp;';
+				$body_cont .= '</span></td>';
 				
 				//количество
 				$body_cont .= '<td class="number">'
-				.'<span class="b3">'
-				.number_format($row['res_quantity_denom'], 0, ',', '&nbsp;')
-				.'</span>'
-				.'</td>';
+				.'<span class="b3">';
+				$body_cont .= ( $row['res_value_num'] > 0 )
+				? number_format($row['res_quantity_denom'], 0, ',', '&nbsp;')
+				: '&nbsp;';
+				$body_cont .= '</span></td>';
 				
 				//средняя μ-Цена,₽
 				$bond_avg =  ($row['res_value_num']/$row['res_quantity_denom']*100/$bond[$row['name']]['FACEVALUE']);
 				$body_cont .= '<td class="number">'
-				.'<span class="b4">'
-				.number_format($bond_avg, 2, ',', '&nbsp;')			
-				.'</span>'
-				.'</td>';
+				.'<span class="b4">';
+				$body_cont .= ( $row['res_value_num'] > 0 )
+				? number_format($bond_avg, 2, ',', '&nbsp;')			
+				: '&nbsp;';
+				$body_cont .= '</span></td>';
 
 				
+				//~ в отдельный субинфо
 				//~ сумма по эмитенту
-				$emitter_colon = number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
-
-				$body_cont .= '<td class="number">'
-				.'<span class="z1">';
-				
-				$body_cont .= ($togle_name != $bond[$row['name']]['REGNUMBER']) 
-				? number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']], 2, ',', '&nbsp;')
-				: '&#12291;';
-				$body_cont .= '</span>';
-				$body_cont .= '</td>';
+				//~ $emitter_colon = number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']] * 100 / $sum_prevlegalcloseprice_emitter, 2, ',','&nbsp;');
+				//~ $body_cont .= '<td class="number">'
+				//~ .'<span class="z1">';				
+				//~ $body_cont .= ($togle_name != $bond[$row['name']]['REGNUMBER']) 
+				//~ ? number_format($total_prevlegalcloseprice_emitter[$bond[$row['name']]['REGNUMBER']], 2, ',', '&nbsp;')
+				//~ : '&#12291;';
+				//~ $body_cont .= '</span>';
+				//~ $body_cont .= '</td>';
 				
 				//~ доля (суммы) по эмитенту
-				//~ if ( $emitter_colon >= 10)
-					//~ $css_background = 'color3';
-				//~ elseif ($emitter_colon >= 5)
-					//~ $css_background = 'color1';
-				//~ else
-					//~ $css_background = 'color2';
-				
-				//~ $body_cont .= '<td class="number '.$css_background.'">'
-				$body_cont .= '<td class="number">'
-				.'<span class="z2">';
-				$body_cont .= ($togle_name != $bond[$row['name']]['REGNUMBER']) 
-				? $emitter_colon
-				: '&#12291;';
-				$body_cont .= '</span>';
-				$body_cont .= '</td>';
+				//~ $body_cont .= '<td class="number">'
+				//~ .'<span class="z2">';
+				//~ $body_cont .= ($togle_name != $bond[$row['name']]['REGNUMBER']) 
+				//~ ? $emitter_colon
+				//~ : '&#12291;';
+				//~ $body_cont .= '</span>';
+				//~ $body_cont .= '</td>';
 				
 				$togle_name = $bond[$row['name']]['REGNUMBER'];
 				
@@ -848,6 +845,13 @@ if ($_GET['do'] == 'bonds') {
 					.'</span>'
 					.'</td>';
 				}
+				else {
+					$body_cont .= '<td class="number">'
+					.'</td>';
+					$body_cont .= '<td class="number">'
+					.'</td>';
+					
+				}
 
 
 				
@@ -855,9 +859,13 @@ if ($_GET['do'] == 'bonds') {
 				
 				//~ номинальная стоимость
 				$body_cont .= '<td class="number">'
-				.'<span class="z5">'
-				.number_format($bond[$row['name']]['FACEVALUE'], 2, ',', '&nbsp;')
-				.'</span>'
+				.'<span class="z5">';
+				
+				if ($bond[$row['name']]['FACEVALUE'] != 1000)
+					$body_cont .= '~';
+				
+				$body_cont .= number_format($bond[$row['name']]['FACEVALUE'], 0, ',', '&nbsp;');
+				$body_cont .= '</span>'
 				.'</td>'
 				//Рыночная Цена,₽
 				.'<td class="number">'
@@ -869,19 +877,21 @@ if ($_GET['do'] == 'bonds') {
 
 
 				//Δ-Цены,₽/п.п
-				$plus_minus = '+';
-				$css_background = 'color1';
-				if (($bond[$row['name']]['PREVLEGALCLOSEPRICE'] -$bond_avg) < 0) {
-					$plus_minus = '';
-					$css_background = 'color3';						
+				$css_background = '';
+				if ($row['res_value_num'] > 0 ) { 
+					$plus_minus = '+';
+					$css_background = 'color1';
+					if (($bond[$row['name']]['PREVLEGALCLOSEPRICE'] -$bond_avg) < 0) {
+						$plus_minus = '';
+						$css_background = 'color3';						
+					}
 				}
-				$body_cont .= '<td class="number '.$css_background.'">'
-				.'<span class="r1">'
-				//~ echo '<span  style="background-color:'.$bond_avg_css.' min-width:25px; display: table-cell; " >'
-				.$plus_minus
-				.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] - $bond_avg, 2, ',', '&nbsp;')
-				.'</span> '
-				.'</td> ';
+				
+				$body_cont .= '<td class="number '.$css_background.'">'.'<span class="r1">';				
+				$body_cont .= ( $row['res_value_num'] > 0 )
+				? $plus_minus.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] - $bond_avg, 2, ',', '&nbsp;').'</span> '
+				: '&nbsp;';
+				$body_cont .= '</td> ';
 				
 				
 				
@@ -908,7 +918,7 @@ if ($_GET['do'] == 'bonds') {
 				.'<span class="r3">';
 				if (!empty($result_bondization)) {
 					$body_cont .= number_format(
-					($result_bondization / ($row['res_value_num']* ($bond[$row['name']]['PREVLEGALCLOSEPRICE']/100) )  *100 ) , 2, ',', ' '
+					($result_bondization / ($row['res_value_num']* ($bond[$row['name']]['PREVLEGALCLOSEPRICE']/100) )  *100 ) , 2, ',', '&nbsp;'
 					);
 				}
 				$body_cont .= '</span>';
@@ -951,35 +961,12 @@ if ($_GET['do'] == 'bonds') {
 
 
 				// дата погашения
-				$css_background = '';
-				$matdate_n = date('Y', strtotime($bond[$row['name']]['MATDATE']));
-				$matdate_y0 = date("Y",$time);
-				$matdate_y1 = date("Y",strtotime("+1 year", $time) );
-				$matdate_y2 = date("Y",strtotime("+2 year", $time) );
-				$matdate_y3 = date("Y",strtotime("+3 year", $time) );
-				$matdate_y4 = date("Y",strtotime("+4 year", $time) );
-				$matdate_y5 = date("Y",strtotime("+5 year", $time) );
-				$matdate_y6 = date("Y",strtotime("+6 year", $time) );
-				
-				
-				if (			
-					strcmp($matdate_n,$matdate_y0) == 0
-					)
+				$css_background = 'color3';
+				if (strtotime("+1 year", $time) > strtotime($bond[$row['name']]['MATDATE']) )
 					$css_background = 'color1';
-				elseif (
-					strcmp($matdate_n,$matdate_y1) == 0 ||
-					strcmp($matdate_n,$matdate_y2) == 0 ||
-					strcmp($matdate_n,$matdate_y3) == 0 
-					)
-					$css_background = 'color2';
-				elseif (
-					strcmp($matdate_n,$matdate_y4) == 0 ||
-					strcmp($matdate_n,$matdate_y5) == 0 ||
-					strcmp($matdate_n,$matdate_y6) == 0 
-				)
-					$css_background = 'color3';
-				else
-					$css_background = 'color3';
+				elseif (strtotime("+2 year", $time) > strtotime($bond[$row['name']]['MATDATE']) )
+					$css_background = 'color2';					
+
 				$css_background_cupon = $css_background;
 				$body_cont .= '<td class="'.$css_background.'" >'.date('d.m.Y', strtotime($bond[$row['name']]['MATDATE'])).'</td>';
 
@@ -996,7 +983,7 @@ if ($_GET['do'] == 'bonds') {
 				
 				$portfolio_bond_duration[] = $bond_yieldscalculator['calculated']['DURATIONYEAR'];
 				
-				$body_cont .= '<td>';
+				$body_cont .= '<td class="'.$css_background.'">';
 				$body_cont .= $bond_yieldscalculator['calculated']['DURATIONYEAR'];
 				$body_cont .= '</td>';
 				$body_cont .= '<td>';
@@ -1054,16 +1041,26 @@ if ($_GET['do'] == 'bonds') {
 	//~ echo "<tfoot>";
 
 
-	$body_cont .= '<tr><td colspan="23" style="text-align:right;">Погашение</br>Купоны</td>';
+	$body_cont .= '<tr><td colspan="21" style="text-align:right;">Погашение</br>Купоны</td>';
 
 	for ($i=0;$i<$bondization_period;$i++) {
-		if ($css_background == 'color1') 
-			$css_background = 'color2';
-		else
+		
+		$portfolio_redemption = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['bond'];
+		
+		$portfolio_coupon = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['coupon'];
+		
+		$css_background = '';
+		if ($portfolio_coupon >= 1000) 
 			$css_background = 'color1';
+		elseif ($portfolio_coupon >= 500) 
+			$css_background = 'color2';
+		//~ elseif ($portfolio_coupon >= 500) 
+			//~ $css_background = 'color2';
+		
+		
 		$body_cont .= '<td class="number '.$css_background.'" style="border-top:1px solid black;">';	
-		$body_cont .= ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['bond']) ? number_format($ff, 2, ',', '&nbsp;') : '';	
-		$body_cont .= ($ff = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['coupon']) ? '</br>'.number_format($ff, 2, ',', '&nbsp;') : '';	
+		$body_cont .= $portfolio_redemption ? number_format($portfolio_redemption, 2, ',', '&nbsp;') : '';	
+		$body_cont .= $portfolio_coupon ? '</br>'.number_format($portfolio_coupon, 2, ',', '&nbsp;') : '';	
 		$body_cont .= '</td>';
 	}
 	$body_cont .= '</tr>';
