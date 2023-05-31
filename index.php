@@ -613,8 +613,8 @@ if ($_GET['do'] == 'bonds') {
 	/ Ставка купона 
 	/ Период выплаты (количество в год) купонов">Купоны</th>
 
-	<th rowspan="2">Дата погашения
-	(оферты)</th>
+	<th rowspan="2">Погашение
+	(Оферта)</th>
 	<th rowspan="2" title="AAA(RU)
 
 	AA+(RU)
@@ -624,7 +624,8 @@ if ($_GET['do'] == 'bonds') {
 	A+(RU)
 	A(RU)
 	A-(RU)
-	">Рейтинг АКРА Экперт&nbsp;РА</th>
+	">АКРА
+	Экперт&nbsp;РА</th>
 	
 	<th colspan="2">Дюрация</th>
 	';
@@ -665,7 +666,7 @@ if ($_GET['do'] == 'bonds') {
 	<th><a title="Размер">₽</a></th>
 	<th><a title="Ставка">%</a></th>
 	<th><a title="Количество">шт</a></th>
-	<th>лет</th>
+	<th>г.</th>
 	<th>дата</th>
 	
 ';
@@ -676,32 +677,23 @@ if ($_GET['do'] == 'bonds') {
 	$css_background = '';
 	$y_toggle ='';
 	$m_toggle ='';
-	for ($i=0; $i<$bondization_period; $i++)	{
-		$css_background = 'color1';
-		if ( $i >= 12)
+	$year = date("Y");
+	for ($i = date("n"); $i < ($bondization_period + date("n")); $i++)	{	
+		$css_background = 'color1';	
+		if ( $i > 24) {
+			$month = $i - 24;
+			$css_background = 'color3';
+		}
+		elseif ( $i > 12 ) {
+			$month = $i - 12;
 			$css_background = 'color2';
-		//~ elseif ( $i >= 12)
-			//~ $css_background = 'color2';
-		//~ else
-			
-			
-		$year = date("Y-m-d", strtotime("+$i month"));
-		$month = date("n", strtotime("+$i month"));
-		$th_content = '';
-		$th_style = '';
-		
-		if ($m_toggle != $month) {		
-			$th_content .= ''.$month;
-			$m_toggle = $month;
-			if ($month == 12)
-				$th_style = 'border-right:1px dotted black;';
-		}	
-		
-		
+		}
+		else
+			$month = $i;
+				
 		$body_cont .= '<th class="'.$css_background.'" style="'.$th_style.'">';	
-		$body_cont .= $th_content;
-		//~ echo '</br>'.$year.'&nbsp;'.$month;
-		//~ echo '</br>'.$i;
+		//~ $body_cont .= $i.'</br>'.$month.'</br>'.$year;
+		$body_cont .= $month;
 		$body_cont .= "</th>";
 	}
 		
@@ -861,10 +853,14 @@ if ($_GET['do'] == 'bonds') {
 				$body_cont .= '<td class="number">'
 				.'<span class="z5">';
 				
-				if ($bond[$row['name']]['FACEVALUE'] != 1000)
+				if ($bond[$row['name']]['FACEVALUE'] == 1000) {
+					$body_cont .= '1k';
+				}
+				else {
 					$body_cont .= '~';
+					$body_cont .= number_format($bond[$row['name']]['FACEVALUE'], 0, ',', '&nbsp;');
+				}
 				
-				$body_cont .= number_format($bond[$row['name']]['FACEVALUE'], 0, ',', '&nbsp;');
 				$body_cont .= '</span>'
 				.'</td>'
 				//Рыночная Цена,₽
@@ -984,7 +980,8 @@ if ($_GET['do'] == 'bonds') {
 				$portfolio_bond_duration[] = $bond_yieldscalculator['calculated']['DURATIONYEAR'];
 				
 				$body_cont .= '<td class="'.$css_background.'">';
-				$body_cont .= $bond_yieldscalculator['calculated']['DURATIONYEAR'];
+				
+				$body_cont .= number_format( $bond_yieldscalculator['calculated']['DURATIONYEAR'] , 1, ',', '&nbsp;');
 				$body_cont .= '</td>';
 				$body_cont .= '<td>';
 				$body_cont .= date('d.m.Y', strtotime('+'.$bond_yieldscalculator['calculated']['DURATION'].' day') );
@@ -1001,10 +998,29 @@ if ($_GET['do'] == 'bonds') {
 				if (is_array($bondization)) {		
 					$matdate = date('y.n', strtotime($bond[$row['name']]['MATDATE']));
 					$css_fin = '';
-					for ($i=0;$i<$bondization_period;$i++) {
+
+					$year = date("Y") ;
+					for ($i = date("n"); $i < ($bondization_period + date("n")); $i++)	{	
+					
+					//~ for ($i=0;$i<$bondization_period;$i++) {
 						
-						$yn = date("y.n",strtotime("+$i month", $time) );
-						$n = date("n",strtotime("+$i month", $time) );
+						//~ $yn = date("y.n",strtotime("+$i month", $time) );
+						//~ $n = date("n",strtotime("+$i month", $time) );
+
+						if ( $i > 24) {
+							$month = $i - 24;
+							$yn = date("y.n",strtotime(($year+2-2000)."-$month-1") );
+							$n = "$month";
+						} elseif ( $i > 12 ) {
+							$month = $i - 12;
+							$yn = date("y.n",strtotime(($year+1-2000)."-$month-1") );
+							$n = "$month";
+						} else {
+							$month = $i;		
+							$yn = ($year-2000).".$month";
+							$n = "$month";
+						}
+						
 						$bond_month = $bondization[$yn]['value_rub'];
 						
 						if (strcmp($matdate,$yn) == 0) {
@@ -1017,7 +1033,8 @@ if ($_GET['do'] == 'bonds') {
 							if ($bond_month*$row['res_quantity_denom'] > 1) {
 								$body_cont .= number_format( $bond_month*$row['res_quantity_denom'], 2, ',', '&nbsp;');
 							}
-							//~ echo "</br>$n";
+							
+							//~ $body_cont .= '</br>'.$yn;
 							$body_cont .= '</td>';
 							$a_bond_month[$yn]['coupon'] += $bond_month*$row['res_quantity_denom'];	
 						}
@@ -1026,7 +1043,7 @@ if ($_GET['do'] == 'bonds') {
 							$body_cont .= '<td style="'.$css_fin.'">';
 							if (!empty($css_fin))
 								$body_cont .= '&bull;';
-								
+							//~ $body_cont .= '</br>'.$yn;	
 							$body_cont .= '</td>';
 						}
 					}
@@ -1043,11 +1060,33 @@ if ($_GET['do'] == 'bonds') {
 
 	$body_cont .= '<tr><td colspan="21" style="text-align:right;">Погашение</br>Купоны</td>';
 
-	for ($i=0;$i<$bondization_period;$i++) {
+	$year = date("Y");
+	for ($i = date("n"); $i < ($bondization_period + date("n")); $i++)	{	
+
+
+	//~ for ($i=0;$i<$bondization_period;$i++) {
 		
-		$portfolio_redemption = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['bond'];
+		//~ $portfolio_redemption = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['bond'];
+		//~ $portfolio_coupon = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['coupon'];
+
+		if ( $i > 24) {
+			$month = $i - 24;
+			$yn = date("y.n",strtotime(($year+2-2000)."-$month-1") );
+			$n = "$month";
+		} elseif ( $i > 12 ) {
+			$month = $i - 12;
+			$yn = date("y.n",strtotime(($year+1-2000)."-$month-1") );
+			$n = "$month";
+		} else {
+			$month = $i;		
+			$yn = ($year-2000).".$month";
+			$n = "$month";			
+		}
+		$portfolio_redemption = $a_bond_month[$yn]['bond'];
+		$portfolio_coupon = $a_bond_month[$yn]['coupon'];
 		
-		$portfolio_coupon = $a_bond_month[date("y.n",strtotime("+$i month", $time) )]['coupon'];
+
+
 		
 		$css_background = '';
 		if ($portfolio_coupon >= 1000) 
@@ -1059,6 +1098,7 @@ if ($_GET['do'] == 'bonds') {
 		
 		
 		$body_cont .= '<td class="number '.$css_background.'" style="border-top:1px solid black;">';	
+		//~ $body_cont .= $yn.'</br>';
 		$body_cont .= $portfolio_redemption ? number_format($portfolio_redemption, 2, ',', '&nbsp;') : '';	
 		$body_cont .= $portfolio_coupon ? '</br>'.number_format($portfolio_coupon, 2, ',', '&nbsp;') : '';	
 		$body_cont .= '</td>';
