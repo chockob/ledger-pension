@@ -608,7 +608,7 @@ if ($_GET['do'] == 'bonds') {
 	<th colspan="2" title="Доля эмитента в портфеле">Эмитент</th>
 -->	
 	<th colspan="4" title="Рыночная стоимость облигации">Значение</th>
-	<th colspan="3">Результаты</th>
+	<th colspan="4">Результаты</th>
 	<th colspan="4" title="Размер купона 
 	/ Ставка купона 
 	/ Период выплаты (количество в год) купонов">Купоны</th>
@@ -659,6 +659,7 @@ if ($_GET['do'] == 'bonds') {
 	<th class="btn_tx1" value="Рын.&nbsp;(%)" content="z6"  title="Рыночная стоимость">Рын.&nbsp;(%)</th>
 
 	<th class="btn_tx1" value="&Delta;&nbsp;(пп)" content="r1" title="Разница цен (&#956; (%) - Рын. (%))">&Delta;&nbsp;(пп)</th>
+	<th class="btn_tx1" value="&Delta;&nbsp;(пп)" content="r1" title="Разница: Знач.Рын (₽) - Базис (₽)">&Delta;&nbsp;(₽)</th>
 	<th class="btn_tx1" value="&sum;&nbsp;Куп.&nbsp;(₽)" content="r2" title="Сумма полученных купонов">&sum;&nbsp;К.&nbsp;(₽)</th>
 	<th class="btn_tx1" value="ROI&nbsp;(%)" content="r3" title="возвратность инвестиционных вложений.Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI&nbsp;(%)</th>
 
@@ -872,7 +873,7 @@ if ($_GET['do'] == 'bonds') {
 				
 
 
-				//Δ-Цены,₽/п.п
+				//Δ (пп)
 				$css_background = '';
 				if ($row['res_value_num'] > 0 ) { 
 					$plus_minus = '+';
@@ -883,10 +884,14 @@ if ($_GET['do'] == 'bonds') {
 					}
 				}
 				
+				$body_cont .= '<td class="number '.$css_background.'">';
+				$body_cont .= $plus_minus.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] - $bond_avg, 2, ',', '&nbsp;');				
+				$body_cont .= '</td> ';
+				
+				//~ Δ (₽)
 				$body_cont .= '<td class="number '.$css_background.'">'.'<span class="r1">';				
-				$body_cont .= ( $row['res_value_num'] > 0 )
-				? $plus_minus.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] - $bond_avg, 2, ',', '&nbsp;').'</span> '
-				: '&nbsp;';
+				$body_cont .= $plus_minus.number_format(($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']) - $row['res_value_num'], 2, ',', '&nbsp;');
+
 				$body_cont .= '</td> ';
 				
 				
@@ -1058,7 +1063,7 @@ if ($_GET['do'] == 'bonds') {
 	//~ echo "<tfoot>";
 
 
-	$body_cont .= '<tr><td colspan="21" style="text-align:right;">Погашение</br>Купоны</td>';
+	$body_cont .= '<tr><td colspan="22" style="text-align:right;">Погашение</br>Купоны</td>';
 
 	$year = date("Y");
 	for ($i = date("n"); $i < ($bondization_period + date("n")); $i++)	{	
