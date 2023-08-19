@@ -506,6 +506,12 @@ if ($_GET['do'] == 'bonds') {
 	ОБЛИГАЦИИ
 	-------------------------------------*/
 
+
+	//~ новости покупки/продажи активов в БПИФ TBRU
+	$tbru = $CoreTinkoff->get_tbru_news($portfolio_bond_isin);
+	
+
+
 	//~ ---------------
 	//~ Итоговый Базис
 	$sql_total_investment= 
@@ -549,7 +555,12 @@ if ($_GET['do'] == 'bonds') {
 	$bond = array();
 	$results = $db->query($sql_q);
 	while ($row = $results->fetchArray()) {
-		$bond[$row['name']] = $CoreMOEX->get_moex_bond_json($row['name']);	
+		//~ $bond[$row['name']] = $CoreMOEX->get_moex_bond_json($row['name']);	
+		$bond[$row['name']] = $CoreMOEX->get_moex2_bond_default($row['name']);	
+		
+		
+		
+		
 		//~ echo $bond[$row['name']]['REGNUMBER'];
 		if (!empty($row['res_quantity_denom']))
 			array_push($portfolio_bond_isin, $row['name']);
@@ -602,13 +613,13 @@ if ($_GET['do'] == 'bonds') {
 	<tr>
 	<th rowspan="2">#</th>
 	<th rowspan="2">Наименование</th>
-	<th colspan="4" title="Базис. Сумма инвестированных средств в облигации, (руб / пропорция от итоговой суммы)" >Базис</th>
+	<th colspan="3" title="Базис. Сумма инвестированных средств в облигации, (руб / пропорция от итоговой суммы)" >Базис</th>
 
 <!--
 	<th colspan="2" title="Доля эмитента в портфеле">Эмитент</th>
 -->	
-	<th colspan="4" title="Рыночная стоимость облигации">Значение</th>
-	<th colspan="4">Результаты</th>
+	<th colspan="6" title="Рыночная стоимость облигации">Значение</th>
+	<th colspan="5">Результаты</th>
 	<th colspan="4" title="Размер купона 
 	/ Ставка купона 
 	/ Период выплаты (количество в год) купонов">Купоны</th>
@@ -645,7 +656,8 @@ if ($_GET['do'] == 'bonds') {
 	$body_cont .= '
 	<tr>
 	<th class="btn_tx1" value="&sum;&nbsp;(₽)" content="b1" >&sum;&nbsp;(₽)</th>   
-	<th class="btn_tx1" value="&Colon;&nbsp;(₽)" content="b2" >&Colon;&nbsp;(%)</th>
+<!--	<th class="btn_tx1" value="&Colon;&nbsp;(₽)" content="b2" >&Colon;&nbsp;(%)</th>
+-->
 	<th class="btn_tx1" value="шт" content="b3" title="Портфель количество облигации">шт</th>
 	<th class="btn_tx1" value="&#956;&nbsp;(%)" content="b4" title="Средняя цена (Базис / Кол.)">&#956;&nbsp;(%)</th>
 
@@ -657,11 +669,15 @@ if ($_GET['do'] == 'bonds') {
 	<th class="btn_tx1" value="&Colon;&nbsp;(%)" content="z4" title="Значение (доля) облигации в портфеля">&Colon;&nbsp;(%)</th>
 	<th class="btn_tx1" value="Ном.&nbsp;(₽)" content="z5"  title="Номинальная стоимость облигации (в тысячах)">Н.&nbsp;(₽)</th>
 	<th class="btn_tx1" value="Рын.&nbsp;(%)" content="z6"  title="Рыночная стоимость">Рын.&nbsp;(%)</th>
+	<th class="btn_tx1" value=""   title="Доходность по средневзвешенной цене, % годовых">Дох.&nbsp;(%/г)</th>
+	<th class="btn_tx1" value=""   title="">G/Z-spread</th>
 
 	<th class="btn_tx1" value="&Delta;&nbsp;(пп)" content="r1" title="Разница цен (&#956; (%) - Рын. (%))">&Delta;&nbsp;(пп)</th>
 	<th class="btn_tx1" value="&Delta;&nbsp;(пп)" content="r1" title="Разница: Знач.Рын (₽) - Базис (₽)">&Delta;&nbsp;(₽)</th>
 	<th class="btn_tx1" value="&sum;&nbsp;Куп.&nbsp;(₽)" content="r2" title="Сумма полученных купонов">&sum;&nbsp;К.&nbsp;(₽)</th>
 	<th class="btn_tx1" value="ROI&nbsp;(%)" content="r3" title="возвратность инвестиционных вложений.Сумма купонного дохода / (Инвестировано*Цена пред.дня)">ROI&nbsp;(%)</th>
+	
+	<th class="btn_tx1" value="" content="r3" title="Профит">Profit(₽)</th>	
 
 	<th><a title="Накомпленный купонный доход">НКД&nbsp;(₽)</a></th>
 	<th><a title="Размер">₽</a></th>
@@ -722,9 +738,22 @@ if ($_GET['do'] == 'bonds') {
 			
 			if ($row['res_quantity_denom'] > 0) {
 				$i_bond++;
+				
+
+				
+				
 				$body_cont .= '<tr>';		
 				//~ код инструмента ISIN
-				$body_cont .= '<td>'.$row['name'].'</td>';
+				
+				
+				$css_background = '';				
+				if ($tbru['CONTENT_ARRAY'][$row['name']] == 'buy')
+					$css_background = 'color1';
+				elseif ($tbru['CONTENT_ARRAY'][$row['name']] == 'sell')
+					$css_background = 'color3';				
+					
+				
+				$body_cont .= '<td class="'.$css_background.'"">'.$row['name'].'</td>';
 				
 				//$bond = '';
 				//$bond = get_moex_bond_json($row['name']);
@@ -735,40 +764,39 @@ if ($_GET['do'] == 'bonds') {
 				
 				
 				//~ наименование инструмента
-				$body_cont .= '<td style="white-space: nowrap;" >';			
+				$body_cont .= '<td style="white-space: nowrap;" class="'.'"">';			
 				$body_cont .= '<a href="https://www.moex.com/ru/issue.aspx?code='.$row['name'].'">';
-				if (preg_match("/RU[a-zA-Z0-9]{10}/", $row['name']) ) {
-					//~ if ($togle_name != $bond[$row['name']]['REGNUMBER'])
-						//~ $body_cont .= ''.$Core->get_emitter_name($bond[$row['name']]['REGNUMBER'] );
-						
-						$body_cont .= ''.$bond[$row['name']]['BOARDNAME'];	
-						
-					//~ else
-						//~ $body_cont .= '&#12291;';
-				}
-				else
+				//~ if (preg_match("/RU[a-zA-Z0-9]{10}/", $row['name']) ) {
+					//~ $body_cont .= ''.$bond[$row['name']]['BOARDNAME'];	
+				//~ }
+				//~ else
 					$body_cont .= $bond[$row['name']]['NAME'];
 				$body_cont .= '</a>';			
 				$body_cont .= '</td>';
 				
-				//Базис, сумма ₽ / ∷			
-				$body_cont .= '<td class="number" >'.'<span class="b1">';
-				$body_cont .= ( $row['res_value_num'] > 0 )
-				? number_format($row['res_value_num'], 2, ',', '&nbsp;')
-				: '&nbsp;';
+
+				//~ доля портфеля
+				$portfolio_bond_colone = ($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);				
+				$css_background = '';				
+				if ( $portfolio_bond_colone > ($_CFG['COLON_MAX'] * 100))
+					$css_background = 'color3';
 				
+				
+				//Базис, сумма ₽ / ∷			
+				$body_cont .= '<td class="number '.$css_background.'"" >'.'<span class="b1">';
+				$body_cont .= number_format($row['res_value_num'], 2, ',', '&nbsp;');	
 				$body_cont .= '</span></td>';
 
 				// Базис доля портфеля
-				$body_cont .= '<td class="number" >'			
-				.'<span class="b2">';
-				$body_cont .= ( $row['res_value_num'] > 0 )
-				? number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;')
-				: '&nbsp;';
-				$body_cont .= '</span></td>';
+				//~ $body_cont .= '<td class="number" >'			;
+				//~ .'<span class="b2">';
+				//~ $body_cont .= ( $row['res_value_num'] > 0 )
+				//~ ? number_format(($row['res_value_num']*100/$total_investment), 2, ',', '&nbsp;')
+				//~ : '&nbsp;';
+				//~ $body_cont .= '</span></td>';
 				
 				//количество
-				$body_cont .= '<td class="number">'
+				$body_cont .= '<td class="number '.$css_background.'">'
 				.'<span class="b3">';
 				$body_cont .= ( $row['res_value_num'] > 0 )
 				? number_format($row['res_quantity_denom'], 0, ',', '&nbsp;')
@@ -777,7 +805,7 @@ if ($_GET['do'] == 'bonds') {
 				
 				//средняя μ-Цена,₽
 				$bond_avg =  ($row['res_value_num']/$row['res_quantity_denom']*100/$bond[$row['name']]['FACEVALUE']);
-				$body_cont .= '<td class="number">'
+				$body_cont .= '<td class="number '.$css_background.'">'
 				.'<span class="b4">';
 				$body_cont .= ( $row['res_value_num'] > 0 )
 				? number_format($bond_avg, 2, ',', '&nbsp;')			
@@ -811,40 +839,31 @@ if ($_GET['do'] == 'bonds') {
 				
 
 
-				//Значение (Портфель рыночная стоимость, ₽)
-					
-				if ($row['res_quantity_denom'] > 0) {				
-					//~ $sum_portfolio_price += $bond['PREVLEGALCLOSEPRICE'] * $bond['FACEVALUE'] /100 * $row['res_quantity_denom'];
-					$body_cont .= '<td class="number">'
-					.'<span class="z3">'
-					.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'], 2, ',', '&nbsp;')
-					.'</span>'
-					.'</td>';
-					
-									
-					// доля портфеля
-					$portfolio_bond_colone = ($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
-					
-					$css_background = '';				
-					if ( $portfolio_bond_colone > ($_CFG['COLON_MAX'] * 100))
-						$css_background = 'color3';
-					elseif ( $portfolio_bond_colone <= ($_CFG['COLON_MAX'] * 100) && $portfolio_bond_colone >= ($_CFG['COLON_MIN'] * 100))
-						$css_background = 'color1';
-
-
-					$body_cont .= '<td class="number '.$css_background.'">'
-					.'<span class="z4">'
-					.number_format($portfolio_bond_colone, 2, ',', '&nbsp;')
-					.'</span>'
-					.'</td>';
-				}
-				else {
-					$body_cont .= '<td class="number">'
-					.'</td>';
-					$body_cont .= '<td class="number">'
-					.'</td>';
-					
-				}
+				//Значение ∑  (₽)
+				
+				$Value_SumRub = $bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom'];
+				
+				$body_cont .= '<td class="number '.$css_background.'">'
+				.'<span class="z3">'
+				.number_format($Value_SumRub, 2, ',', '&nbsp;')
+				.'</span>'
+				.'</td>';
+				
+								
+				//~ доля портфеля
+				
+				//~ $portfolio_bond_colone = ($bond[$row['name']]['PREVLEGALCLOSEPRICE'] * $bond[$row['name']]['FACEVALUE'] /100 * $row['res_quantity_denom']*100/$total_prevlegalcloseprice);
+				
+				//~ $css_background = '';				
+				//~ if ( $portfolio_bond_colone > ($_CFG['COLON_MAX'] * 100))
+					//~ $css_background = 'color3';
+				
+				$body_cont .= '<td class="number '.$css_background.'">'
+				.'<span class="z4">'
+				.number_format($portfolio_bond_colone, 2, ',', '&nbsp;')
+				.'</span>'
+				.'</td>';
+	
 
 
 				
@@ -864,12 +883,24 @@ if ($_GET['do'] == 'bonds') {
 				
 				$body_cont .= '</span>'
 				.'</td>'
+				
 				//Рыночная Цена,₽
 				.'<td class="number">'
-				.'<span class="z6">'
 				.number_format($bond[$row['name']]['PREVLEGALCLOSEPRICE'], 2, ',', ' ')
-				.'</span>'
 				.'</td>';
+				
+				//~ Дох. (%/г)
+				$body_cont .= '<td class="number">'				
+				.number_format($bond[$row['name']]['EFFECTIVEYIELDWAPRICE'], 2, ',', ' ')
+				.'</td>';
+				
+				
+				//~ Дох. (%/г)
+				$body_cont .= '<td class="number">'				
+				.number_format($bond[$row['name']]['GSPREADBP'], 0, ',', ' ').'/'
+				.number_format($bond[$row['name']]['ZSPREADBP'], 0, ',', ' ')
+				.'</td>';
+				
 				
 
 
@@ -897,16 +928,18 @@ if ($_GET['do'] == 'bonds') {
 				
 				
 				//∑ купонов,₽
-				$result_bondization = '';
-				$body_cont .= ($result_bondization = $gnucash_bondization[$row['name']]) 
-				? 
-				'<td class="number">'
-				.'<span class="r2">'
-				.number_format($result_bondization, 2, ',', ' ')
-				.'</span>' 
-				.'</td>' 
-				: '<td class="number"></td>';
-				$sum_gnucash_bondization += $result_bondization;
+				$Value_BondizationSumRub = '';
+				
+				 
+				
+				$body_cont .= '<td class="number">';
+				if ($Value_BondizationSumRub = $gnucash_bondization[$row['name']] ) {
+					$body_cont .= number_format($Value_BondizationSumRub, 2, ',', ' ');
+					$sum_gnucash_bondization += $Value_BondizationSumRub;
+				}
+				$body_cont .= '</td>';
+				
+				
 			
 				//if (($bond['PREVLEGALCLOSEPRICE'] -$bond_avg) < 0)
 					//$bond_avg_css = 'style="color: red; "';			
@@ -917,22 +950,22 @@ if ($_GET['do'] == 'bonds') {
 				// ROI
 				$body_cont .= '<td class="number">'
 				.'<span class="r3">';
-				if (!empty($result_bondization)) {
+				if (!empty($Value_BondizationSumRub)) {
 					$body_cont .= number_format(
-					($result_bondization / ($row['res_value_num']* ($bond[$row['name']]['PREVLEGALCLOSEPRICE']/100) )  *100 ) , 2, ',', '&nbsp;'
+					($Value_BondizationSumRub / ($row['res_value_num']* ($bond[$row['name']]['PREVLEGALCLOSEPRICE']/100) )  *100 ) , 2, ',', '&nbsp;'
 					);
 				}
 				$body_cont .= '</span>';
 				$body_cont .= '</td>';
 				
-				
-				//echo '<td class="number">'.number_format($bond['PREVLEGALCLOSEPRICE'], 2, ',', ' ').'</td>';
-		
-
+				//~ Profit(₽)
 				$body_cont .= '<td class="number">'
-				.'<span class="">'
+				.number_format($Value_SumRub + $Value_BondizationSumRub + $bond[$row['name']]['ACCRUEDINT'] - $row['res_value_num'] , 2, ',', '&nbsp;')
+				.'</td>';
+		
+				//~ НКД (₽)
+				$body_cont .= '<td class="number">'
 				.number_format($bond[$row['name']]['ACCRUEDINT'],2,',',' ')
-				.'</span>'
 				.'</td>';		
 				
 				$css_background = '';
@@ -1063,7 +1096,7 @@ if ($_GET['do'] == 'bonds') {
 	//~ echo "<tfoot>";
 
 
-	$body_cont .= '<tr><td colspan="22" style="text-align:right;">Погашение</br>Купоны</td>';
+	$body_cont .= '<tr><td colspan="24" style="text-align:right;">Погашение</br>Купоны</td>';
 
 	$year = date("Y");
 	for ($i = date("n"); $i < ($bondization_period + date("n")); $i++)	{	
@@ -1144,7 +1177,9 @@ if ($_GET['do'] == 'bonds') {
 	
 	//~ print_r($portfolio_bond_isin);
 	
-	echo $CoreTinkoff->get_tbru_news($portfolio_bond_isin);
+	//~ новости покупки/продажи активов в БПИФ TBRU
+	$tbru = $CoreTinkoff->get_tbru_news($portfolio_bond_isin);
+	echo $tbru['CONTENT'];
 
 }
 

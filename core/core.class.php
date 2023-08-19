@@ -21,7 +21,7 @@ class CoreLedgerPension {
 			<script src="./js/jquery-3.6.0.min.js"></script>
 
 			
-			<script src="./js/table.js"></script>			
+			<script src="./js/table.js__"></script>			
 		';
 
 		//~ echo "
@@ -284,7 +284,26 @@ class CoreLedgerPension {
 	}
 
 
-
+//SELECT 
+		//--accounts.name,
+		//--SUM(splits.value_num * -1) AS sum_splits_value_num,
+		
+		//splits.*,
+		//splits.value_denom
+		
+		 //FROM splits 
+		 
+			//WHERE (	
+				//(
+				//splits.account_guid = "f315fa5ec7bb4e6e96b353b95f116699" --иф
+				//OR splits.account_guid = "a716b259bc7a4ce49daa4615f513c983" --пф
+				//)
+				//and splits.memo LIKE "%Купоны%"
+				//--AND accounts.guid = splits.tx_guid
+		
+			//)
+		
+		//ORDER BY splits.tx_guid DESC
 
 
 

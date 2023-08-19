@@ -237,13 +237,100 @@ class CoreMOEX {
 		
 	}
 
+	//https://iss.moex.com/iss/securities.json?q=RU000A1067T9&iss.meta=off&iss.json=extended
+		//~ "id": 421701399,
+		//~ "secid": "SU26242RMFS6",
+		//~ "shortname": "ОФЗ 26242",
+		//~ "regnumber": "26242RMFS",
+		//~ "name": "ОФЗ-ПД 26242 29/08/29",
+		//~ "isin": "RU000A105RV3",
+		//~ "is_traded": 1,
+		//~ "emitent_id": 1374788,
+		//~ "emitent_title": "Министерство финансов Российской Федерации",
+		//~ "emitent_inn": "7710168360",
+		//~ "emitent_okpo": null,
+		//~ "gosreg": "26242RMFS",
+		//~ "type": "ofz_bond",
+		//~ "group": "stock_bonds",
+		//~ "primary_boardid": "TQOB",
+		//~ "marketprice_boardid": "TQOB"	
+	//~ https://iss.moex.com/iss/engines/stock/markets/bonds/boards/TQOB/securities/SU26242RMFS6.jsonp?iss.meta=off&iss.json=extended
+	
+	
+	function get_moex2_bond_default($bond_secid) {    		
+		$source_file = 'db/bond/'.$bond_secid.'_default.json';	
+		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+		$dateEnd = date_create(date('d.m.Y',time()));
+		$dateEnd->setTime(24,0,0);
+		$diff = date_diff($dateStart,$dateEnd);
+		if (file_exists($source_file) && $diff->format("%a") <= 1 ) {
+			$people_json = file_get_contents($source_file);	
+		}
+		else {				
+			$people_json = file_get_contents('https://iss.moex.com/iss/securities.json?q='.$bond_secid.'&iss.meta=off&iss.json=extended');	
+			file_put_contents($source_file, $people_json);
+		}
+		$decoded_json = json_decode($people_json, true);		
+		//~ print_r($decoded_json);
+		$res = array();	
+
+
+		
+		//~ print_r($decoded_json[1]['securities'][0]['name']);
+		
+		
+		$res['NAME'] 				= $decoded_json[1]['securities'][0]['name'];  //<th>Полное наименование</th>	
+		$res['SHORTNAME'] 				= $decoded_json[1]['securities'][0]['shortname'];  //<th>Полное наименование</th>	
+		$res['EMITENT_TITLE'] 				= $decoded_json[1]['securities'][0]['emitent_title'];  //<th>Полное наименование</th>	
+		$res['PRIMARY_BOARDID'] 				= $decoded_json[1]['securities'][0]['primary_boardid'];  //<th>Полное наименование</th>	
+		$res['MARKETPRICE_BOARDID'] 				= $decoded_json[1]['securities'][0]['marketprice_boardid'];  //<th>Полное наименование</th>	
+
+
+		$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/bonds/boards/'.$res['PRIMARY_BOARDID'].'/securities/'.$bond_secid.'.jsonp?iss.meta=off&iss.json=extended');	
+		$source_file = 'db/bond/'.$bond_secid.'_engines.json';	
+		$dateStart = date_create(date ("d.m.Y", filemtime($source_file)));
+		$dateEnd = date_create(date('d.m.Y',time()));
+		$dateEnd->setTime(24,0,0);
+		$diff = date_diff($dateStart,$dateEnd);
+		if (file_exists($source_file) && $diff->format("%a") <= 1 ) {
+			$people_json = file_get_contents($source_file);	
+		}
+		else {				
+			$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/bonds/boards/'.$res['PRIMARY_BOARDID'].'/securities/'.$bond_secid.'.jsonp?iss.meta=off&iss.json=extended');	
+			file_put_contents($source_file, $people_json);
+		}
+		$decoded_json = json_decode($people_json, true);				
+
+		$res['ACCRUEDINT'] 			= $decoded_json[1]['securities'][0]['ACCRUEDINT'];  //<th>НКД на дату расчетов</th>
+		$res['MATDATE'] 			= $decoded_json[1]['securities'][0]['MATDATE'];  //<th>Дата погашения</th>
+		$res['PREVLEGALCLOSEPRICE'] = $decoded_json[1]['securities'][0]['PREVLEGALCLOSEPRICE'];  //<th>Цена пред. дня, % к номиналу</th>
+		$res['STATUS'] 				= $decoded_json[1]['securities'][0]['STATUS'];  //<th>Статус</th>	
+		$res['LISTLEVEL'] 			= $decoded_json[1]['securities'][0]['LISTLEVEL'];  //<th>Уровень листинга</th>	
+		$res['FACEVALUE'] 			= $decoded_json[1]['securities'][0]['FACEVALUE'];   //<th>Номинальная стоимость</th>
+		$res['COUPONPERIOD'] 		= $decoded_json[1]['securities'][0]['COUPONPERIOD'];  //<th>Перио-дичность выплаты купона в год</th>
+		
+		$res['BOARDNAME'] 			= $decoded_json[1]['securities'][0]['BOARDNAME'];   //<th>Ставка купона, %</th>	
+		
+		$res['COUPONPERCENT'] 		= $decoded_json[1]['securities'][0]['COUPONPERCENT'];   //<th>Ставка купона, %</th>	
+		$res['COUPONVALUE'] 		= $decoded_json[1]['securities'][0]['COUPONVALUE'];   //<th>Размер купона</th>	
+		
+		$res['EFFECTIVEYIELDWAPRICE'] 		= $decoded_json[1]['marketdata_yields'][0]['EFFECTIVEYIELDWAPRICE'];   //<th>Размер купона</th>	
+		$res['ZSPREADBP'] 		= $decoded_json[1]['marketdata_yields'][0]['ZSPREADBP'];   //<th>Размер купона</th>	
+		$res['GSPREADBP'] 		= $decoded_json[1]['marketdata_yields'][0]['GSPREADBP'];   //<th>Размер купона</th>	
+
+
+		
+		return $res;	
+		
+	
+	}
+
 
 	//----------------------------------------------------------------------
 
 	// ИНФОРМАЦИЯ ПО ОБЛИГАЦИИ
 	// https://iss.moex.com/iss/securities/RU000A104UA4.jsonp?shortname=1&iss.only=description&iss.meta=off&iss.json=extended&lang=ru
-
-	function get_moex_bond_json($bond_secid) {    		
+/*	function get_moex_bond_json($bond_secid) {    		
 		//$bond_secid = 'RU000A104UA4';
 		
 		$source_file = 'db/bond/'.$bond_secid.'.json';	
@@ -264,22 +351,11 @@ class CoreMOEX {
 			$BOARDID = 'TQCB';
 			if (preg_match("/SU[a-zA-Z0-9]{10}/", $bond_secid) )
 				$BOARDID = 'TQOB';
-			
-				
-			
 			$people_json = file_get_contents('https://iss.moex.com/iss/engines/stock/markets/bonds/boards/'.$BOARDID.'/securities/'.$bond_secid.'.jsonp?iss.meta=off&iss.only=securities&lang=ru');	
-			//$people_json = file_get_contents('https://iss.moex.com/iss/securities/'.$bond_secid.'.jsonp?shortname=1&iss.only=description&iss.meta=off&iss.json=extended&lang=ru');	
 			file_put_contents($source_file, $people_json);
 		}
 		$decoded_json = json_decode($people_json, true);		
-		//print_r($decoded_json);
 		$res = array();	
-		
-		
-		if (preg_match("/SU[a-zA-Z0-9]{10}/", $bond_secid) )
-			$res['NAME'] 				= $decoded_json['securities']['data'][0][19];  //<th>Полное наименование</th>	
-		else
-			$res['NAME'] 				= $decoded_json['securities']['data'][0][20];  //<th>Полное наименование</th>	
 		$res['ACCRUEDINT'] 			= $decoded_json['securities']['data'][0][7];  //<th>НКД на дату расчетов</th>
 		$res['MATDATE'] 			= $decoded_json['securities']['data'][0][13];  //<th>Дата погашения</th>
 		$res['PREVLEGALCLOSEPRICE'] 			= $decoded_json['securities']['data'][0][3];  //<th>Цена пред. дня, % к номиналу</th>
@@ -292,25 +368,14 @@ class CoreMOEX {
 		
 		$res['COUPONPERCENT'] 		= $decoded_json['securities']['data'][0][35];   //<th>Ставка купона, %</th>	
 		$res['COUPONVALUE'] 		= $decoded_json['securities']['data'][0][5];   //<th>Размер купона</th>	
-		
-		
-		
-		//~ 4B02-04-87154-H-002P
-		
 		$matches = null;
-		//~ $returnValue = preg_match('/^[A-Z0-9]*-[A-Z0-9]*-([A-Z0-9]*-[A-Z0-9]*)/', $decoded_json['securities']['data'][0][31], $matches);
 		$returnValue = preg_match('/^[A-Z0-9]*-[A-Z0-9]*-([A-Z0-9]*-[A-Z0-9]*)/', $decoded_json['securities']['data'][0][30], $matches);
 		
 		$res['REGNUMBER'] 		= $matches[1];   //<th>Размер купона</th>	
 		
-		//~ $res['REGNUMBER'] 		= $decoded_json['securities']['data'][0][31];   //<th>Размер купона</th>	
-		
-		
-		
-		
 		return $res;
 	}
-	
+*/	
 	
 	public function get_bond_yieldscalculator($bond_isin) {
 		
